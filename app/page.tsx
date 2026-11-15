@@ -94,7 +94,6 @@ const FAQS = [
   { q: "¿Tienen precios especiales para mayoreo o eventos?", a: "¡Claro que sí! Contamos con paquetes especiales para fiestas, reuniones o si deseas revender en tu negocio." }
 ];
 
-// TARJETA PROFESIONAL CON CAMBIO DE COLOR INMEDIATO AL PASAR EL CURSOR (HOVER)
 function TiltProductCard({
   product,
   onHoverSelect,
@@ -112,10 +111,31 @@ function TiltProductCard({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [10, -10]), { stiffness: 320, damping: 26 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 320, damping: 26 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 28 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 28 });
 
   const isActive = isHovered || isSelected;
+
+  // En iPad / celular: activa el sabor automáticamente cuando la tarjeta entra al centro de la pantalla al deslizar
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    if (!isTouchDevice) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+            onHoverSelect();
+          }
+        });
+      },
+      { threshold: [0.65], rootMargin: "-15% 0px -15% 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onHoverSelect]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -143,25 +163,24 @@ function TiltProductCard({
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={onHoverSelect}
       onClick={onClickOpen}
       animate={{
-        y: isHovered ? -10 : 0,
-        scale: isHovered ? 1.03 : 1,
+        y: isActive ? -8 : 0,
         backgroundColor: isActive ? product.bgColor : "#F9FAFB",
         color: isActive ? "#FFFFFF" : "#111827",
-        boxShadow: isActive
-          ? `0 24px 48px -12px ${product.bgColor}66`
-          : "0 10px 28px rgba(17, 24, 39, 0.04)",
       }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       style={{
         rotateX,
         rotateY,
-        transformStyle: "preserve-3d",
         backgroundImage: isActive
-          ? "radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 65%)"
+          ? "radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 65%)"
           : "none",
+        boxShadow: isActive
+          ? `0 20px 38px -12px ${product.bgColor}55`
+          : "0 8px 24px rgba(17, 24, 39, 0.04)",
         borderRadius: "28px",
         padding: "1.75rem",
         cursor: "pointer",
@@ -174,59 +193,51 @@ function TiltProductCard({
         minHeight: "340px",
       }}
     >
-      {/* Cabecera de la tarjeta */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
         <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.8 }}>
           100 GR
         </span>
-        <motion.span
-          animate={{
-            scale: isActive ? 1.25 : 1,
-            backgroundColor: isActive ? "#FFFFFF" : product.bgColor,
-          }}
-          transition={{ duration: 0.25 }}
+        <span
           style={{
             width: "12px",
             height: "12px",
             borderRadius: "50%",
             display: "inline-block",
+            backgroundColor: isActive ? "#FFFFFF" : product.bgColor,
+            transform: isActive ? "scale(1.2)" : "scale(1)",
+            transition: "all 0.25s ease",
           }}
         />
       </div>
 
-      {/* Imagen flotante del producto */}
       <motion.div
         animate={{
-          y: isHovered ? -6 : 0,
-          scale: isHovered ? 1.07 : 1,
-          rotate: isHovered ? -2 : 0,
+          y: isActive ? -5 : 0,
+          scale: isActive ? 1.05 : 1,
         }}
-        transition={{ type: "spring", stiffness: 280, damping: 20 }}
+        transition={{ duration: 0.22 }}
         style={{
           height: "185px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          transform: "translateZ(30px)",
           margin: "0.25rem 0",
         }}
       >
         <img
           src={product.imageSrc}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           style={{
             maxHeight: "100%",
             maxWidth: "100%",
             objectFit: "contain",
-            filter: isActive
-              ? "drop-shadow(0 20px 26px rgba(0,0,0,0.42))"
-              : "drop-shadow(0 12px 18px rgba(0,0,0,0.18))",
-            transition: "filter 0.28s ease",
+            filter: "drop-shadow(0 12px 16px rgba(0,0,0,0.22))",
           }}
         />
       </motion.div>
 
-      {/* Pie de tarjeta con nombre, descripción y precio */}
       <div style={{ marginTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4 style={{ fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.2 }}>
@@ -246,8 +257,8 @@ export default function PromptMasterPage() {
   const heroStageRef = useRef<HTMLDivElement>(null);
   const heroMouseX = useMotionValue(0);
   const heroMouseY = useMotionValue(0);
-  const heroRotateX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [14, -14]), { stiffness: 220, damping: 22 });
-  const heroRotateY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-18, 18]), { stiffness: 220, damping: 22 });
+  const heroRotateX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [10, -10]), { stiffness: 220, damping: 24 });
+  const heroRotateY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-14, 14]), { stiffness: 220, damping: 24 });
 
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [openCurriculum, setOpenCurriculum] = useState<number | null>(0);
@@ -273,14 +284,6 @@ export default function PromptMasterPage() {
 
   const mountRef = useRef<HTMLDivElement | null>(null);
 
-  // Precarga instantánea de las 4 imágenes de productos en memoria
-  useEffect(() => {
-    PRODUCTS.forEach((prod) => {
-      const img = new Image();
-      img.src = prod.imageSrc;
-    });
-  }, []);
-
   useEffect(() => {
     let index = 0;
     const typingInterval = setInterval(() => {
@@ -295,21 +298,25 @@ export default function PromptMasterPage() {
     return () => clearInterval(typingInterval);
   }, []);
 
-  // RENDERIZADO 3D CON THREE.JS: CARGA earth.glb SIN REFLEJOS
+  // RENDERIZADO 3D CON GIRO POR SCROLL Y DEDO EN IPAD/CELULAR + LAPTOP
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 500;
-    const height = container.clientHeight || 450;
+    const width = container.clientWidth || 400;
+    const height = container.clientHeight || 380;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 4.5;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "low-power",
+    });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
@@ -319,11 +326,16 @@ export default function PromptMasterPage() {
     const globeGroup = new THREE.Group();
     scene.add(globeGroup);
 
+    let loadedModel: THREE.Object3D | null = null;
+    let isDisposed = false;
+
     const loader = new GLTFLoader();
     loader.load(
       "/earth.glb",
       (gltf) => {
+        if (isDisposed) return;
         const model = gltf.scene;
+        loadedModel = model;
         model.scale.set(0.0075, 0.0075, 0.0075);
 
         model.traverse((child) => {
@@ -344,6 +356,7 @@ export default function PromptMasterPage() {
         });
 
         globeGroup.add(model);
+        renderer.render(scene, camera);
       },
       undefined,
       (error) => {
@@ -353,7 +366,9 @@ export default function PromptMasterPage() {
 
     let isDragging = false;
     let isHovered = false;
+    let isVisible = false;
     let previousMousePosition = { x: 0, y: 0 };
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
 
     const onMouseEnter = () => { isHovered = true; };
     const onMouseLeaveContainer = () => {
@@ -361,40 +376,72 @@ export default function PromptMasterPage() {
       isDragging = false;
     };
 
-    const onMouseDown = (e: MouseEvent) => {
+    const onPointerDown = (clientX: number, clientY: number) => {
       isDragging = true;
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+      previousMousePosition = { x: clientX, y: clientY };
     };
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onPointerMove = (clientX: number, clientY: number) => {
       if (!isDragging) return;
-      const deltaX = e.clientX - previousMousePosition.x;
-      const deltaY = e.clientY - previousMousePosition.y;
-
-      globeGroup.rotation.y += deltaX * 0.008;
-      globeGroup.rotation.x += deltaY * 0.008;
-
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+      const deltaX = clientX - previousMousePosition.x;
+      const deltaY = clientY - previousMousePosition.y;
+      globeGroup.rotation.y += deltaX * 0.009;
+      globeGroup.rotation.x += deltaY * 0.009;
+      previousMousePosition = { x: clientX, y: clientY };
     };
 
+    const onMouseDown = (e: MouseEvent) => onPointerDown(e.clientX, e.clientY);
+    const onMouseMove = (e: MouseEvent) => onPointerMove(e.clientX, e.clientY);
     const onMouseUp = () => { isDragging = false; };
 
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1 && isDragging) {
+        onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+    const onTouchEnd = () => { isDragging = false; };
+
+    // Rueda del ratón en laptop
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       globeGroup.rotation.y += e.deltaY * 0.002;
     };
 
+    // Scroll de página en iPad, celular y laptop
+    const onWindowScroll = () => {
+      const currentScrollY = window.scrollY;
+      const deltaScroll = currentScrollY - lastScrollY;
+      lastScrollY = currentScrollY;
+      if (isVisible) {
+        globeGroup.rotation.y += deltaScroll * 0.0045;
+      }
+    };
+
     const domElement = renderer.domElement;
+    domElement.style.touchAction = "pan-y";
     domElement.addEventListener("mouseenter", onMouseEnter);
     domElement.addEventListener("mouseleave", onMouseLeaveContainer);
     domElement.addEventListener("mousedown", onMouseDown);
+    domElement.addEventListener("wheel", onWheel, { passive: false });
+    domElement.addEventListener("touchstart", onTouchStart, { passive: true });
+    domElement.addEventListener("touchmove", onTouchMove, { passive: true });
+    domElement.addEventListener("touchend", onTouchEnd);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-    domElement.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("scroll", onWindowScroll, { passive: true });
 
-    let animationFrameId: number;
+    let animationFrameId: number | null = null;
 
     const animate = () => {
+      if (!isVisible || isDisposed) {
+        animationFrameId = null;
+        return;
+      }
       animationFrameId = requestAnimationFrame(animate);
 
       if (!isHovered && !isDragging) {
@@ -403,18 +450,52 @@ export default function PromptMasterPage() {
 
       renderer.render(scene, camera);
     };
-    animate();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible && animationFrameId === null && !isDisposed) {
+            animate();
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(container);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      isDisposed = true;
+      observer.disconnect();
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+
       domElement.removeEventListener("mouseenter", onMouseEnter);
       domElement.removeEventListener("mouseleave", onMouseLeaveContainer);
       domElement.removeEventListener("mousedown", onMouseDown);
+      domElement.removeEventListener("wheel", onWheel);
+      domElement.removeEventListener("touchstart", onTouchStart);
+      domElement.removeEventListener("touchmove", onTouchMove);
+      domElement.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      domElement.removeEventListener("wheel", onWheel);
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+      window.removeEventListener("scroll", onWindowScroll);
+
+      if (loadedModel) {
+        loadedModel.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.geometry?.dispose();
+            if (Array.isArray(mesh.material)) {
+              mesh.material.forEach((m) => m.dispose());
+            } else {
+              mesh.material?.dispose();
+            }
+          }
+        });
+      }
+      renderer.dispose();
+      if (container.contains(domElement)) {
+        container.removeChild(domElement);
       }
     };
   }, []);
@@ -439,7 +520,6 @@ export default function PromptMasterPage() {
     }
   };
 
-  // IA REAL SIN NECESIDAD DE API KEY (POLLINATIONS AI)
   const handleAskChef = async () => {
     const queryToUse = userQuery.trim() || "Dame una receta creativa y deliciosa para preparar mis Papacruj";
     setChefStatus("Procesando consulta culinaria...");
@@ -511,12 +591,13 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         html { scroll-behavior: smooth; }
         ::selection { background-color: #800020; color: #FFFFFF; }
         @keyframes marqueeScroll {
-          0% { transform: translateX(0%); }
-          100% { transform: translateX(-50%); }
+          0% { transform: translate3d(0%, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
         }
         .papacruj-marquee-track {
           display: flex;
           width: max-content;
+          will-change: transform;
           animation: marqueeScroll 22s linear infinite;
         }
         .papacruj-marquee-track:hover {
@@ -525,13 +606,13 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
       `}</style>
 
       {/* NAVBAR */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "rgba(255, 255, 255, 0.92)", borderBottom: "1px solid rgba(17, 24, 39, 0.08)", backdropFilter: "blur(16px)" }}>
-        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "rgba(255, 255, 255, 0.96)", borderBottom: "1px solid rgba(17, 24, 39, 0.08)" }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
           <a href="#" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
             <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
           </a>
 
-          <nav style={{ display: "flex", alignItems: "center", gap: "2rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)" }}>
+          <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)", flexWrap: "wrap" }}>
             <a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a>
             <a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a>
             <a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a>
@@ -540,33 +621,31 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </nav>
 
           <motion.a
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.4rem 1.25rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
           >
-            <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "34px", height: "34px", objectFit: "contain" }} /> Hacer pedido →
+            <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "30px", height: "30px", objectFit: "contain" }} /> Hacer pedido →
           </motion.a>
         </div>
       </header>
 
-      {/* ESCAPARATE PRINCIPAL CON TILT 3D Y CAMBIO INSTANTÁNEO */}
+      {/* ESCAPARATE PRINCIPAL */}
       <section
         id="productos"
         ref={heroStageRef}
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        style={{ padding: "2rem 1.5rem 4rem", maxWidth: "75rem", margin: "0 auto", perspective: "1200px" }}
+        style={{ padding: "2rem 1.5rem 4rem", maxWidth: "75rem", margin: "0 auto" }}
       >
-        <motion.div
-          animate={{
-            backgroundColor: selectedProduct.bgColor,
-            boxShadow: `0 25px 50px ${selectedProduct.bgColor}44`
-          }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
+        <div
           style={{
+            backgroundColor: selectedProduct.bgColor,
+            boxShadow: `0 25px 50px ${selectedProduct.bgColor}44`,
+            transition: "background-color 0.35s ease, box-shadow 0.35s ease",
             backgroundImage: `radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 60%)`,
             borderRadius: "32px",
             padding: "clamp(2rem, 5vw, 4rem)",
@@ -575,11 +654,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             border: "1px solid rgba(255,255,255,0.25)"
           }}
         >
-          <motion.div
-            key={`bg-word-${selectedProduct.id}`}
-            initial={{ opacity: 0, y: 20, scale: 0.96 }}
-            animate={{ opacity: 0.14, y: 0, scale: 1 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          <div
             style={{
               position: "absolute",
               top: "50%",
@@ -587,7 +662,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
               transform: "translate(-50%, -50%)",
               fontSize: "clamp(5rem, 15vw, 13rem)",
               fontWeight: 900,
-              color: "#FFFFFF",
+              color: "rgba(255,255,255,0.14)",
               whiteSpace: "nowrap",
               pointerEvents: "none",
               userSelect: "none",
@@ -596,14 +671,14 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             }}
           >
             {selectedProduct.shortName}
-          </motion.div>
+          </div>
 
-          <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+          <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "0.5rem" }}>
             <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>
               Papacruj
             </span>
-            <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.25)", padding: "0.35rem 0.75rem", borderRadius: "999px", backdropFilter: "blur(10px)" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#FFF", opacity: 0.8 }}>Sabor seleccionado:</span>
+            <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.3)", padding: "0.35rem 0.75rem", borderRadius: "999px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#FFF", opacity: 0.85 }}>Sabor seleccionado:</span>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#FFF" }}>{selectedProduct.name}</span>
             </div>
           </div>
@@ -613,22 +688,16 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
               <div style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.85)", fontWeight: 700, marginBottom: "0.5rem" }}>
                 {selectedProduct.category}
               </div>
-              <motion.h3
-                key={`title-${selectedProduct.id}`}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.25 }}
-                style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#FFFFFF", lineHeight: 1.08, marginBottom: "1rem" }}
-              >
+              <h3 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#FFFFFF", lineHeight: 1.08, marginBottom: "1rem" }}>
                 {selectedProduct.name}
-              </motion.h3>
+              </h3>
               <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.9)", lineHeight: 1.6, marginBottom: "2rem" }}>
                 {selectedProduct.description}
               </p>
 
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
                 {selectedProduct.details.map((det, idx) => (
-                  <span key={idx} style={{ backgroundColor: "rgba(0,0,0,0.25)", color: "#FFFFFF", padding: "0.4rem 1rem", borderRadius: "999px", fontSize: "0.8rem", fontWeight: 600, backdropFilter: "blur(8px)" }}>
+                  <span key={idx} style={{ backgroundColor: "rgba(0,0,0,0.28)", color: "#FFFFFF", padding: "0.4rem 1rem", borderRadius: "999px", fontSize: "0.8rem", fontWeight: 600 }}>
                     ✓ {det}
                   </span>
                 ))}
@@ -638,21 +707,21 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#FFFFFF" }}>Elige tu sabor:</span>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   {PRODUCTS.map((prod) => (
-                    <motion.button
+                    <button
                       key={prod.id}
-                      whileHover={{ scale: 1.18 }}
-                      whileTap={{ scale: 0.9 }}
                       onMouseEnter={() => setSelectedProduct(prod)}
+                      onTouchStart={() => setSelectedProduct(prod)}
                       onClick={() => setSelectedProduct(prod)}
                       title={prod.name}
                       style={{
-                        width: "36px",
-                        height: "36px",
+                        width: "38px",
+                        height: "38px",
                         borderRadius: "50%",
                         backgroundColor: prod.bgColor,
                         border: selectedProduct.id === prod.id ? "3px solid #FFFFFF" : "2px solid rgba(255,255,255,0.4)",
                         cursor: "pointer",
-                        boxShadow: selectedProduct.id === prod.id ? "0 0 15px rgba(255,255,255,0.9)" : "none"
+                        boxShadow: selectedProduct.id === prod.id ? "0 0 15px rgba(255,255,255,0.9)" : "none",
+                        transition: "transform 0.2s ease"
                       }}
                     />
                   ))}
@@ -665,17 +734,15 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 style={{
                   rotateX: heroRotateX,
                   rotateY: heroRotateY,
-                  transformStyle: "preserve-3d",
                   width: "100%",
                   maxWidth: "360px",
                   boxSizing: "border-box",
-                  background: "rgba(0, 0, 0, 0.3)",
-                  backdropFilter: "blur(20px)",
+                  background: "rgba(0, 0, 0, 0.38)",
                   borderRadius: "28px",
                   padding: "2rem",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  border: "1px solid rgba(255,255,255,0.22)",
                   textAlign: "center",
-                  boxShadow: "0 25px 50px rgba(0,0,0,0.4)"
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.35)"
                 }}
               >
                 <div
@@ -683,59 +750,44 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   title="Haz clic para ver detalle ampliado"
                   style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0.5rem 0 1rem 0", overflow: "hidden", borderRadius: "16px", cursor: "zoom-in", position: "relative" }}
                 >
-                  <AnimatePresence initial={false}>
-                    <motion.img
-                      key={selectedProduct.id}
-                      src={selectedProduct.imageSrc}
-                      alt={selectedProduct.name}
-                      initial={{ opacity: 0, scale: 0.92 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.96, position: "absolute" }}
-                      whileHover={{ scale: 1.08, rotate: -2 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                      style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", filter: "drop-shadow(0 18px 25px rgba(0,0,0,0.55))" }}
-                    />
-                  </AnimatePresence>
+                  <img
+                    key={selectedProduct.id}
+                    src={selectedProduct.imageSrc}
+                    alt={selectedProduct.name}
+                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", filter: "drop-shadow(0 16px 22px rgba(0,0,0,0.5))", transition: "transform 0.2s ease" }}
+                  />
                 </div>
 
                 {/* PRECIO DINÁMICO SEGÚN CANTIDAD */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "1.25rem" }}>
                   <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>
+                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)" }}>
                       {quantity === 1 ? "Precio por bolsa" : `Total (${quantity} bolsas)`}
                     </div>
-                    <motion.div
-                      key={totalPrice}
-                      initial={{ scale: 0.92, opacity: 0.7 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.18 }}
-                      style={{ fontSize: "1.75rem", fontWeight: 800, color: "#FFFFFF" }}
-                    >
+                    <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#FFFFFF" }}>
                       ${totalPrice}
-                    </motion.div>
+                    </div>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.15)", padding: "0.4rem 0.8rem", borderRadius: "12px" }}>
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1rem", cursor: "pointer", fontWeight: 700 }}>−</button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.18)", padding: "0.4rem 0.8rem", borderRadius: "12px" }}>
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>−</button>
                     <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#FFF", minWidth: "1rem", textAlign: "center" }}>{quantity}</span>
-                    <button onClick={() => setQuantity(quantity + 1)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1rem", cursor: "pointer", fontWeight: 700 }}>+</button>
+                    <button onClick={() => setQuantity(quantity + 1)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>+</button>
                   </div>
                 </div>
 
-                <motion.a
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 10px 20px rgba(0,0,0,0.2)" }}
                 >
-                  <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "44px", height: "44px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
-                </motion.a>
+                  <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+                </a>
               </motion.div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* MARQUESINA INFINITA HORIZONTAL */}
@@ -758,15 +810,9 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </div>
 
-      {/* CUADRÍCULA DE SABORES CON CAMBIO DE COLOR INMEDIATO EN HOVER */}
+      {/* CUADRÍCULA DE SABORES */}
       <section id="catalogo" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5 }}
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "2.5rem" }}
-        >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "2.5rem" }}>
           <div>
             <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.12em" }}>
               Colección Completa
@@ -776,11 +822,11 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </h2>
           </div>
           <p style={{ fontSize: "0.9rem", color: "rgba(17,24,39,0.6)", maxWidth: "24rem" }}>
-            Pasa el cursor sobre cada bolsa para cambiar el color del sabor o haz clic para ver su ficha completa.
+            Desliza o toca cada bolsa para cambiar el color del sabor y ver su ficha completa.
           </p>
-        </motion.div>
+        </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem", perspective: "1000px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
           {PRODUCTS.map((prod) => (
             <TiltProductCard
               key={prod.id}
@@ -809,8 +855,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
               position: "fixed",
               inset: 0,
               zIndex: 100,
-              backgroundColor: "rgba(17, 24, 39, 0.72)",
-              backdropFilter: "blur(10px)",
+              backgroundColor: "rgba(17, 24, 39, 0.82)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -818,10 +863,10 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             }}
           >
             <motion.div
-              initial={{ scale: 0.88, y: 40, opacity: 0 }}
+              initial={{ scale: 0.92, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 30, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              exit={{ scale: 0.94, y: 20, opacity: 0 }}
+              transition={{ duration: 0.22 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: "100%",
@@ -829,7 +874,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 backgroundColor: expandedModalProduct.bgColor,
                 borderRadius: "32px",
                 overflow: "hidden",
-                boxShadow: "0 30px 70px rgba(0,0,0,0.45)",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.45)",
                 position: "relative"
               }}
             >
@@ -844,7 +889,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   height: "40px",
                   borderRadius: "50%",
                   border: "none",
-                  backgroundColor: "rgba(0,0,0,0.35)",
+                  backgroundColor: "rgba(0,0,0,0.4)",
                   color: "#FFFFFF",
                   fontSize: "1.2rem",
                   fontWeight: 700,
@@ -871,10 +916,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   {expandedModalProduct.shortName}
                 </div>
 
-                <motion.img
-                  initial={{ y: 20, rotate: -6, scale: 0.9 }}
-                  animate={{ y: 0, rotate: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 18 }}
+                <img
                   src={expandedModalProduct.imageSrc}
                   alt={expandedModalProduct.name}
                   style={{
@@ -882,15 +924,12 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                     zIndex: 2,
                     height: "240px",
                     objectFit: "contain",
-                    filter: "drop-shadow(0 22px 28px rgba(0,0,0,0.5))"
+                    filter: "drop-shadow(0 18px 24px rgba(0,0,0,0.45))"
                   }}
                 />
               </div>
 
-              <motion.div
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
+              <div
                 style={{
                   backgroundColor: "#FFFFFF",
                   padding: "2rem 2.5rem",
@@ -932,25 +971,25 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 >
                   Pedir este sabor →
                 </a>
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* HERO SECTION (PAPACRUJ CHEF) */}
-      <section style={{ position: "relative", padding: "5rem 1.5rem 6rem", textAlign: "center", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translate(-50%, -50%)", width: "650px", height: "450px", backgroundColor: "rgba(128, 0, 32, 0.12)", filter: "blur(110px)", borderRadius: "9999px", pointerEvents: "none" }} />
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
-          style={{ maxWidth: "55rem", margin: "0 auto", position: "relative", zIndex: 10 }}
-        >
+      <section
+        style={{
+          position: "relative",
+          padding: "5rem 1.5rem 6rem",
+          textAlign: "center",
+          overflow: "hidden",
+          background: "radial-gradient(circle at 50% 20%, rgba(128, 0, 32, 0.08), transparent 60%)"
+        }}
+      >
+        <div style={{ maxWidth: "55rem", margin: "0 auto", position: "relative", zIndex: 10 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", backgroundColor: "#F9FAFB", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8125rem", color: "#374151" }}>
-            <span style={{ backgroundColor: "#800020", width: "0.5rem", height: "0.5rem", borderRadius: "9999px", display: "inline-block", boxShadow: "0 0 10px #800020" }} />
+            <span style={{ backgroundColor: "#800020", width: "0.5rem", height: "0.5rem", borderRadius: "9999px", display: "inline-block" }} />
             Papacruj Chef IA Multitarea Avanzada
           </div>
 
@@ -988,100 +1027,93 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 <span onClick={() => setUserQuery("Cuántas calorías y proteína tiene")} style={{ fontSize: "0.75rem", backgroundColor: "#E5E7EB", padding: "0.25rem 0.75rem", borderRadius: "8px", color: "#374151", cursor: "pointer" }}>+ Calorías / macros</span>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+              <button
                 onClick={handleAskChef}
                 style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "12px", padding: "0.625rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(128, 0, 32, 0.3)" }}
               >
                 Preguntar a la IA →
-              </motion.button>
+              </button>
             </div>
 
-            <AnimatePresence>
-              {aiResponse && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  style={{
-                    marginTop: "1.5rem",
-                    backgroundColor: "#FFFFFF",
-                    border: "1px solid rgba(128, 0, 32, 0.4)",
-                    borderRadius: "16px",
-                    padding: "1.5rem",
-                    fontFamily: "'Playfair Display', serif",
-                    color: "#111827",
-                    lineHeight: 1.7
-                  }}
-                >
-                  <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#800020", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {aiResponse.type === "recipe" ? "🍽️" : aiResponse.type === "macros" ? "📊" : "💡"} {aiResponse.title}
+            {aiResponse && (
+              <div
+                style={{
+                  marginTop: "1.5rem",
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid rgba(128, 0, 32, 0.4)",
+                  borderRadius: "16px",
+                  padding: "1.5rem",
+                  fontFamily: "'Playfair Display', serif",
+                  color: "#111827",
+                  lineHeight: 1.7
+                }}
+              >
+                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#800020", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  {aiResponse.type === "recipe" ? "🍽️" : aiResponse.type === "macros" ? "📊" : "💡"} {aiResponse.title}
+                </div>
+
+                {aiResponse.subtitle && (
+                  <div style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.6)", marginBottom: "1.25rem", fontStyle: "italic" }}>
+                    ⏱️ {aiResponse.subtitle}
                   </div>
+                )}
 
-                  {aiResponse.subtitle && (
-                    <div style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.6)", marginBottom: "1.25rem", fontStyle: "italic" }}>
-                      ⏱️ {aiResponse.subtitle}
+                {aiResponse.content && (
+                  <p style={{ fontSize: "1rem", color: "rgba(17, 24, 39, 0.85)", margin: "0.5rem 0 1rem 0", lineHeight: 1.6 }}>
+                    {aiResponse.content}
+                  </p>
+                )}
+
+                {aiResponse.macrosData && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "1rem", marginTop: "1rem", marginBottom: "0.5rem" }}>
+                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Calorías</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#800020", marginTop: "0.2rem" }}>{aiResponse.macrosData.calories}</div>
                     </div>
-                  )}
-
-                  {aiResponse.content && (
-                    <p style={{ fontSize: "1rem", color: "rgba(17, 24, 39, 0.85)", margin: "0.5rem 0 1rem 0", lineHeight: 1.6 }}>
-                      {aiResponse.content}
-                    </p>
-                  )}
-
-                  {aiResponse.macrosData && (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "1rem", marginTop: "1rem", marginBottom: "0.5rem" }}>
-                      <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Calorías</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#800020", marginTop: "0.2rem" }}>{aiResponse.macrosData.calories}</div>
-                      </div>
-                      <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Proteína</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.protein}</div>
-                      </div>
-                      <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Carbohidratos</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.carbs}</div>
-                      </div>
-                      <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Grasas</div>
-                        <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.fats}</div>
-                      </div>
+                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Proteína</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.protein}</div>
                     </div>
-                  )}
+                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Carbohidratos</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.carbs}</div>
+                    </div>
+                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Grasas</div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.fats}</div>
+                    </div>
+                  </div>
+                )}
 
-                  {aiResponse.ingredients && (
-                    <>
-                      <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem", marginTop: "1rem" }}>
-                        Ingredientes:
-                      </div>
-                      <ul style={{ paddingLeft: "1.25rem", margin: "0 0 1.25rem 0", color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
-                        {aiResponse.ingredients.map((ing, i) => (
-                          <li key={i} style={{ marginBottom: "0.3rem" }}>{ing}</li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
+                {aiResponse.ingredients && (
+                  <>
+                    <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem", marginTop: "1rem" }}>
+                      Ingredientes:
+                    </div>
+                    <ul style={{ paddingLeft: "1.25rem", margin: "0 0 1.25rem 0", color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
+                      {aiResponse.ingredients.map((ing, i) => (
+                        <li key={i} style={{ marginBottom: "0.3rem" }}>{ing}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
-                  {aiResponse.steps && (
-                    <>
-                      <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem" }}>
-                        Preparación paso a paso:
-                      </div>
-                      <ol style={{ paddingLeft: "1.25rem", margin: 0, color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
-                        {aiResponse.steps.map((step, i) => (
-                          <li key={i} style={{ marginBottom: "0.5rem" }}>{step}</li>
-                        ))}
-                      </ol>
-                    </>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                {aiResponse.steps && (
+                  <>
+                    <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem" }}>
+                      Preparación paso a paso:
+                    </div>
+                    <ol style={{ paddingLeft: "1.25rem", margin: 0, color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
+                      {aiResponse.steps.map((step, i) => (
+                        <li key={i} style={{ marginBottom: "0.5rem" }}>{step}</li>
+                      ))}
+                    </ol>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* EVENTOS Y MAYOREO SECTION */}
@@ -1099,9 +1131,8 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           {CURRICULUM.map((item, idx) => {
             const isOpen = openCurriculum === idx;
             return (
-              <motion.div
+              <div
                 key={item.module}
-                whileHover={{ x: 6 }}
                 onClick={() => setOpenCurriculum(isOpen ? null : idx)}
                 style={{
                   backgroundColor: "#F9FAFB",
@@ -1124,19 +1155,12 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
                 </div>
 
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}
-                    >
-                      {item.topics}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+                {isOpen && (
+                  <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
+                    {item.topics}
+                  </p>
+                )}
+              </div>
             );
           })}
         </div>
@@ -1150,11 +1174,10 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </h2>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
           {REVIEWS.map((rev) => (
-            <motion.div
+            <div
               key={rev.name}
-              whileHover={{ y: -6 }}
               style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", borderRadius: "24px", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
             >
               <p style={{ fontSize: "0.95rem", color: "rgba(17, 24, 39, 0.8)", lineHeight: 1.6, fontStyle: "italic" }}>
@@ -1167,7 +1190,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   <p style={{ fontSize: "0.75rem", color: "rgba(17, 24, 39, 0.5)" }}>{rev.role}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -1200,27 +1223,20 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827" }}>{faq.q}</h3>
                   <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
                 </div>
-                <AnimatePresence>
-                  {isOpen && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.7)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}
-                    >
-                      {faq.a}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                {isOpen && (
+                  <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.7)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
+                    {faq.a}
+                  </p>
+                )}
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* CALL TO ACTION & GLOBO 3D (SECCIÓN ENVÍOS CENTRADA) */}
+      {/* CALL TO ACTION & GLOBO 3D */}
       <section id="envios" style={{ padding: "3rem 1.5rem 6rem", maxWidth: "75rem", margin: "0 auto" }}>
-        <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "40px", padding: "clamp(2.5rem, 5vw, 4rem)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "3rem", alignItems: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "40px", padding: "clamp(2.5rem, 5vw, 4rem)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "center", position: "relative", overflow: "hidden" }}>
           <div>
             <h2 style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
               Pide tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Papacruj</span> hoy
@@ -1230,16 +1246,14 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </p>
 
             <div style={{ marginTop: "2rem" }}>
-              <motion.a
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+              <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: "inline-flex", alignItems: "center", gap: "0.65rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.75rem 2.25rem", fontSize: "1rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
               >
-                <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "44px", height: "44px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
-              </motion.a>
+                <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+              </a>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "2.5rem", fontSize: "0.85rem", color: "rgba(17, 24, 39, 0.75)" }}>
@@ -1250,7 +1264,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </div>
 
           {/* CONTENEDOR THREE.JS */}
-          <div style={{ width: "100%", height: "420px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
+          <div style={{ width: "100%", height: "380px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
             <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
           </div>
         </div>
@@ -1287,7 +1301,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </div>
         </div>
 
-        <div style={{ maxWidth: "75rem", margin: "0 auto", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", color: "rgba(17,24,39,0.45)" }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", color: "rgba(17,24,39,0.45)", flexWrap: "wrap", gap: "1rem" }}>
           <p>© 2026 Papacruj. Todos los derechos reservados.</p>
           <div style={{ display: "flex", gap: "1.5rem" }}>
             <a href="#" style={{ textDecoration: "none", color: "inherit" }}>Política de Privacidad</a>
