@@ -94,44 +94,24 @@ const FAQS = [
   { q: "¿Tienen precios especiales para mayoreo o eventos?", a: "¡Claro que sí! Contamos con paquetes especiales para fiestas, reuniones o si deseas revender en tu negocio." }
 ];
 
+// COMPONENTE DE TARJETA INDEPENDIENTE Y AISLADO PARA EVITAR RE-RENDERS EN CASCADA
 const ProductCard = React.memo(function ProductCard({
   product,
-  onHoverSelect,
-  onClickOpen,
+  onSelectProduct,
 }: {
   product: (typeof PRODUCTS)[0];
-  onHoverSelect: () => void;
-  onClickOpen: () => void;
-  isSelected?: boolean;
+  onSelectProduct: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [7, -7]), { stiffness: 300, damping: 30 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-7, 7]), { stiffness: 300, damping: 30 });
-
-  const isActive = isHovered;
-
   const handleMouseEnter = () => {
     if (typeof window !== "undefined" && window.matchMedia("(hover: none)").matches) return;
     setIsHovered(true);
-    onHoverSelect();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    mouseX.set(0);
-    mouseY.set(0);
   };
 
   const handleTouchStart = () => {
@@ -139,45 +119,42 @@ const ProductCard = React.memo(function ProductCard({
   };
 
   const handleTouchEnd = () => {
-    setTimeout(() => setIsHovered(false), 180);
+    setTimeout(() => setIsHovered(false), 200);
   };
 
   return (
-    <motion.div
+    <div
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
-      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
       onClick={() => {
         setIsHovered(false);
-        onClickOpen();
+        onSelectProduct();
       }}
       style={{
-        rotateX,
-        rotateY,
-        backgroundColor: isActive ? product.bgColor : "#F9FAFB",
-        color: isActive ? "#FFFFFF" : "#111827",
-        backgroundImage: isActive
+        backgroundColor: isHovered ? product.bgColor : "#F9FAFB",
+        color: isHovered ? "#FFFFFF" : "#111827",
+        backgroundImage: isHovered
           ? "radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 65%)"
           : "none",
-        boxShadow: isActive
+        boxShadow: isHovered
           ? `0 16px 32px -10px ${product.bgColor}55`
           : "0 6px 18px rgba(17, 24, 39, 0.04)",
-        transform: isActive ? "translateY(-6px)" : "translateY(0px)",
-        transition: "background-color 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease",
+        transform: isHovered ? "translateY(-6px)" : "translateY(0px)",
+        transition: "background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease",
         borderRadius: "28px",
         padding: "1.75rem",
         cursor: "pointer",
-        border: isActive ? "1px solid rgba(255, 255, 255, 0.35)" : "1px solid rgba(17, 24, 39, 0.08)",
+        border: isHovered ? "1px solid rgba(255, 255, 255, 0.35)" : "1px solid rgba(17, 24, 39, 0.08)",
         position: "relative",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
         minHeight: "340px",
+        willChange: "transform, background-color",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -190,8 +167,8 @@ const ProductCard = React.memo(function ProductCard({
             height: "12px",
             borderRadius: "50%",
             display: "inline-block",
-            backgroundColor: isActive ? "#FFFFFF" : product.bgColor,
-            transition: "background-color 0.25s ease",
+            backgroundColor: isHovered ? "#FFFFFF" : product.bgColor,
+            transition: "background-color 0.2s ease",
           }}
         />
       </div>
@@ -203,8 +180,8 @@ const ProductCard = React.memo(function ProductCard({
           alignItems: "center",
           justifyContent: "center",
           margin: "0.25rem 0",
-          transform: isActive ? "scale(1.04)" : "scale(1)",
-          transition: "transform 0.25s ease",
+          transform: isHovered ? "scale(1.04)" : "scale(1)",
+          transition: "transform 0.2s ease",
         }}
       >
         <img
@@ -232,7 +209,7 @@ const ProductCard = React.memo(function ProductCard({
         </div>
         <span style={{ fontSize: "1.05rem", fontWeight: 800, flexShrink: 0 }}>{product.price}</span>
       </div>
-    </motion.div>
+    </div>
   );
 });
 
@@ -281,7 +258,7 @@ export default function PromptMasterPage() {
     return () => clearInterval(typingInterval);
   }, []);
 
-  // MOTOR 3D ULTRALIGERO PARA IPAD, CELULAR Y LAPTOP
+  // MOTOR 3D ULTRALIGERO
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -814,8 +791,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <ProductCard
               key={prod.id}
               product={prod}
-              onHoverSelect={() => setSelectedProduct(prod)}
-              onClickOpen={() => {
+              onSelectProduct={() => {
                 setSelectedProduct(prod);
                 setExpandedModalProduct(prod);
               }}
