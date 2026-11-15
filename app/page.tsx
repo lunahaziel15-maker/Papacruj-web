@@ -580,6 +580,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)", flexWrap: "wrap" }}>
             <a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a>
             <a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a>
+            <a href="#historia" style={{ textDecoration: "none", color: "inherit" }}>Historia</a>
             <a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a>
             <a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a>
             <a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>Preguntas</a>
@@ -1248,6 +1249,41 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </section>
 
+      {/* NUEVA SECCIÓN: SOBRE NOSOTROS / HISTORIA */}
+      <section id="historia" style={{ padding: "4rem 1.5rem 6rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}>
+        <div style={{ backgroundColor: "#FAF7F2", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "36px", padding: "clamp(2.5rem, 5vw, 4.5rem)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1rem" }}>
+            Sobre Nosotros
+          </div>
+          
+          <h2 style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.15, marginBottom: "2.5rem" }}>
+            Dos amigas. <br />
+            Una idea. <br />
+            <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Mucho crunch.</span>
+          </h2>
+
+          <div style={{ fontSize: "clamp(1.15rem, 2vw, 1.35rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}>
+            PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
+          </div>
+
+          <div style={{ fontSize: "1.025rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <p>
+              Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
+            </p>
+            <p>
+              Nuestros chips de taro tienen 0 mg de grasas trans, 0 mg de colesterol, son altos en fibra, bajos en sodio y no contienen conservadores artificiales. Y hay algo que tenemos muy claro: disfrutar una opción más ligera también debe saber delicioso.
+            </p>
+            <p>
+              Cuidamos nuestros sabores y cada detalle de la marca para que pruebes PAPACRUJ por curiosidad y vuelvas por su sabor.
+            </p>
+          </div>
+
+          <div style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(17,24,39,0.08)", paddingTop: "2rem" }}>
+            Porque disfrutar y cuidarte pueden ir juntos.
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer style={{ backgroundColor: "#FFFFFF", borderTop: "1px solid rgba(17,24,39,0.08)", padding: "5rem 1.5rem 3rem" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
@@ -1263,6 +1299,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "rgba(17,24,39,0.6)" }}>
               <li><a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a></li>
               <li><a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a></li>
+              <li><a href="#historia" style={{ textDecoration: "none", color: "inherit" }}>Historia</a></li>
               <li><a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a></li>
               <li><a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a></li>
               <li><a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>FAQ</a></li>
