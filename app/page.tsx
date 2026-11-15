@@ -94,16 +94,15 @@ const FAQS = [
   { q: "¿Tienen precios especiales para mayoreo o eventos?", a: "¡Claro que sí! Contamos con paquetes especiales para fiestas, reuniones o si deseas revender en tu negocio." }
 ];
 
-function TiltProductCard({
+const ProductCard = React.memo(function ProductCard({
   product,
   onHoverSelect,
   onClickOpen,
-  isSelected,
 }: {
   product: (typeof PRODUCTS)[0];
   onHoverSelect: () => void;
   onClickOpen: () => void;
-  isSelected: boolean;
+  isSelected?: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -111,33 +110,13 @@ function TiltProductCard({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 28 });
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 28 });
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [7, -7]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-7, 7]), { stiffness: 300, damping: 30 });
 
-  const isActive = isHovered || isSelected;
-
-  // En iPad / celular: activa el sabor automáticamente cuando la tarjeta entra al centro de la pantalla al deslizar
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-    if (!isTouchDevice) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
-            onHoverSelect();
-          }
-        });
-      },
-      { threshold: [0.65], rootMargin: "-15% 0px -15% 0px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [onHoverSelect]);
+  const isActive = isHovered;
 
   const handleMouseEnter = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(hover: none)").matches) return;
     setIsHovered(true);
     onHoverSelect();
   };
@@ -145,10 +124,8 @@ function TiltProductCard({
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(xPct);
-    mouseY.set(yPct);
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
@@ -157,30 +134,40 @@ function TiltProductCard({
     mouseY.set(0);
   };
 
+  const handleTouchStart = () => {
+    setIsHovered(true);
+  };
+
+  const handleTouchEnd = () => {
+    setTimeout(() => setIsHovered(false), 180);
+  };
+
   return (
     <motion.div
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={onHoverSelect}
-      onClick={onClickOpen}
-      animate={{
-        y: isActive ? -8 : 0,
-        backgroundColor: isActive ? product.bgColor : "#F9FAFB",
-        color: isActive ? "#FFFFFF" : "#111827",
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      onClick={() => {
+        setIsHovered(false);
+        onClickOpen();
       }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       style={{
         rotateX,
         rotateY,
+        backgroundColor: isActive ? product.bgColor : "#F9FAFB",
+        color: isActive ? "#FFFFFF" : "#111827",
         backgroundImage: isActive
           ? "radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 65%)"
           : "none",
         boxShadow: isActive
-          ? `0 20px 38px -12px ${product.bgColor}55`
-          : "0 8px 24px rgba(17, 24, 39, 0.04)",
+          ? `0 16px 32px -10px ${product.bgColor}55`
+          : "0 6px 18px rgba(17, 24, 39, 0.04)",
+        transform: isActive ? "translateY(-6px)" : "translateY(0px)",
+        transition: "background-color 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease",
         borderRadius: "28px",
         padding: "1.75rem",
         cursor: "pointer",
@@ -204,24 +191,20 @@ function TiltProductCard({
             borderRadius: "50%",
             display: "inline-block",
             backgroundColor: isActive ? "#FFFFFF" : product.bgColor,
-            transform: isActive ? "scale(1.2)" : "scale(1)",
-            transition: "all 0.25s ease",
+            transition: "background-color 0.25s ease",
           }}
         />
       </div>
 
-      <motion.div
-        animate={{
-          y: isActive ? -5 : 0,
-          scale: isActive ? 1.05 : 1,
-        }}
-        transition={{ duration: 0.22 }}
+      <div
         style={{
           height: "185px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           margin: "0.25rem 0",
+          transform: isActive ? "scale(1.04)" : "scale(1)",
+          transition: "transform 0.25s ease",
         }}
       >
         <img
@@ -233,10 +216,10 @@ function TiltProductCard({
             maxHeight: "100%",
             maxWidth: "100%",
             objectFit: "contain",
-            filter: "drop-shadow(0 12px 16px rgba(0,0,0,0.22))",
+            borderRadius: "12px",
           }}
         />
-      </motion.div>
+      </div>
 
       <div style={{ marginTop: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -251,14 +234,14 @@ function TiltProductCard({
       </div>
     </motion.div>
   );
-}
+});
 
 export default function PromptMasterPage() {
   const heroStageRef = useRef<HTMLDivElement>(null);
   const heroMouseX = useMotionValue(0);
   const heroMouseY = useMotionValue(0);
-  const heroRotateX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [10, -10]), { stiffness: 220, damping: 24 });
-  const heroRotateY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-14, 14]), { stiffness: 220, damping: 24 });
+  const heroRotateX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [8, -8]), { stiffness: 220, damping: 26 });
+  const heroRotateY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 220, damping: 26 });
 
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [openCurriculum, setOpenCurriculum] = useState<number | null>(0);
@@ -293,18 +276,19 @@ export default function PromptMasterPage() {
       } else {
         clearInterval(typingInterval);
       }
-    }, 45);
+    }, 55);
 
     return () => clearInterval(typingInterval);
   }, []);
 
-  // RENDERIZADO 3D CON GIRO POR SCROLL Y DEDO EN IPAD/CELULAR + LAPTOP
+  // MOTOR 3D ULTRALIGERO PARA IPAD, CELULAR Y LAPTOP
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 400;
-    const height = container.clientHeight || 380;
+    const isMobileOrTablet = typeof window !== "undefined" && ("ontouchstart" in window || window.innerWidth < 1024);
+    const width = container.clientWidth || 340;
+    const height = container.clientHeight || 340;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -312,11 +296,11 @@ export default function PromptMasterPage() {
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: !isMobileOrTablet,
       powerPreference: "low-power",
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(isMobileOrTablet ? 1 : Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
@@ -406,20 +390,17 @@ export default function PromptMasterPage() {
     };
     const onTouchEnd = () => { isDragging = false; };
 
-    // Rueda del ratón en laptop
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       globeGroup.rotation.y += e.deltaY * 0.002;
     };
 
-    // Scroll de página en iPad, celular y laptop
     const onWindowScroll = () => {
+      if (!isVisible) return;
       const currentScrollY = window.scrollY;
       const deltaScroll = currentScrollY - lastScrollY;
       lastScrollY = currentScrollY;
-      if (isVisible) {
-        globeGroup.rotation.y += deltaScroll * 0.0045;
-      }
+      globeGroup.rotation.y += deltaScroll * 0.004;
     };
 
     const domElement = renderer.domElement;
@@ -436,16 +417,21 @@ export default function PromptMasterPage() {
     window.addEventListener("scroll", onWindowScroll, { passive: true });
 
     let animationFrameId: number | null = null;
+    let lastFrameTime = 0;
+    const targetFrameInterval = isMobileOrTablet ? 33 : 16;
 
-    const animate = () => {
+    const animate = (now: number) => {
       if (!isVisible || isDisposed) {
         animationFrameId = null;
         return;
       }
       animationFrameId = requestAnimationFrame(animate);
 
+      if (now - lastFrameTime < targetFrameInterval) return;
+      lastFrameTime = now;
+
       if (!isHovered && !isDragging) {
-        globeGroup.rotation.y += 0.0035;
+        globeGroup.rotation.y += 0.005;
       }
 
       renderer.render(scene, camera);
@@ -455,8 +441,11 @@ export default function PromptMasterPage() {
       (entries) => {
         entries.forEach((entry) => {
           isVisible = entry.isIntersecting;
-          if (isVisible && animationFrameId === null && !isDisposed) {
-            animate();
+          if (isVisible) {
+            lastScrollY = window.scrollY;
+            if (animationFrameId === null && !isDisposed) {
+              animationFrameId = requestAnimationFrame(animate);
+            }
           }
         });
       },
@@ -597,8 +586,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         .papacruj-marquee-track {
           display: flex;
           width: max-content;
-          will-change: transform;
-          animation: marqueeScroll 22s linear infinite;
+          animation: marqueeScroll 24s linear infinite;
         }
         .papacruj-marquee-track:hover {
           animation-play-state: paused;
@@ -606,7 +594,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
       `}</style>
 
       {/* NAVBAR */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "rgba(255, 255, 255, 0.96)", borderBottom: "1px solid rgba(17, 24, 39, 0.08)" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#FFFFFF", borderBottom: "1px solid rgba(17, 24, 39, 0.08)" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
           <a href="#" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
             <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
@@ -620,16 +608,14 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>Preguntas</a>
           </nav>
 
-          <motion.a
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+          <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.4rem 1.25rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
           >
             <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "30px", height: "30px", objectFit: "contain" }} /> Hacer pedido →
-          </motion.a>
+          </a>
         </div>
       </header>
 
@@ -644,8 +630,8 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         <div
           style={{
             backgroundColor: selectedProduct.bgColor,
-            boxShadow: `0 25px 50px ${selectedProduct.bgColor}44`,
-            transition: "background-color 0.35s ease, box-shadow 0.35s ease",
+            boxShadow: `0 20px 40px ${selectedProduct.bgColor}40`,
+            transition: "background-color 0.3s ease",
             backgroundImage: `radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 60%)`,
             borderRadius: "32px",
             padding: "clamp(2rem, 5vw, 4rem)",
@@ -710,18 +696,16 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                     <button
                       key={prod.id}
                       onMouseEnter={() => setSelectedProduct(prod)}
-                      onTouchStart={() => setSelectedProduct(prod)}
                       onClick={() => setSelectedProduct(prod)}
                       title={prod.name}
                       style={{
-                        width: "38px",
-                        height: "38px",
+                        width: "40px",
+                        height: "40px",
                         borderRadius: "50%",
                         backgroundColor: prod.bgColor,
-                        border: selectedProduct.id === prod.id ? "3px solid #FFFFFF" : "2px solid rgba(255,255,255,0.4)",
+                        border: selectedProduct.id === prod.id ? "3px solid #FFFFFF" : "2px solid rgba(255,255,255,0.45)",
                         cursor: "pointer",
-                        boxShadow: selectedProduct.id === prod.id ? "0 0 15px rgba(255,255,255,0.9)" : "none",
-                        transition: "transform 0.2s ease"
+                        boxShadow: selectedProduct.id === prod.id ? "0 0 12px rgba(255,255,255,0.9)" : "none",
                       }}
                     />
                   ))}
@@ -742,7 +726,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   padding: "2rem",
                   border: "1px solid rgba(255,255,255,0.22)",
                   textAlign: "center",
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.35)"
+                  boxShadow: "0 16px 32px rgba(0,0,0,0.3)"
                 }}
               >
                 <div
@@ -751,10 +735,9 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0.5rem 0 1rem 0", overflow: "hidden", borderRadius: "16px", cursor: "zoom-in", position: "relative" }}
                 >
                   <img
-                    key={selectedProduct.id}
                     src={selectedProduct.imageSrc}
                     alt={selectedProduct.name}
-                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", filter: "drop-shadow(0 16px 22px rgba(0,0,0,0.5))", transition: "transform 0.2s ease" }}
+                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", borderRadius: "12px" }}
                   />
                 </div>
 
@@ -780,7 +763,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 10px 20px rgba(0,0,0,0.2)" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
                 >
                   <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
                 </a>
@@ -822,16 +805,15 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </h2>
           </div>
           <p style={{ fontSize: "0.9rem", color: "rgba(17,24,39,0.6)", maxWidth: "24rem" }}>
-            Desliza o toca cada bolsa para cambiar el color del sabor y ver su ficha completa.
+            Toca cualquier bolsa para cambiar el color del sabor y ver su ficha completa.
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
           {PRODUCTS.map((prod) => (
-            <TiltProductCard
+            <ProductCard
               key={prod.id}
               product={prod}
-              isSelected={selectedProduct.id === prod.id}
               onHoverSelect={() => setSelectedProduct(prod)}
               onClickOpen={() => {
                 setSelectedProduct(prod);
@@ -863,10 +845,10 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             }}
           >
             <motion.div
-              initial={{ scale: 0.92, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.94, y: 20, opacity: 0 }}
-              transition={{ duration: 0.22 }}
+              initial={{ scale: 0.94, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: "100%",
@@ -924,7 +906,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                     zIndex: 2,
                     height: "240px",
                     objectFit: "contain",
-                    filter: "drop-shadow(0 18px 24px rgba(0,0,0,0.45))"
+                    borderRadius: "16px"
                   }}
                 />
               </div>
@@ -1264,7 +1246,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </div>
 
           {/* CONTENEDOR THREE.JS */}
-          <div style={{ width: "100%", height: "380px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
+          <div style={{ width: "100%", height: "360px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
             <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
           </div>
         </div>
