@@ -585,16 +585,17 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>Preguntas</a>
           </nav>
 
-          <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.96 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.4rem 1.25rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
-            >
-              <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "30px", height: "30px", objectFit: "contain" }} /> Hacer pedido →
-            </a>
-          </motion.div>
+          <motion.a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.4rem 1.25rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
+          >
+            <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "30px", height: "30px", objectFit: "contain" }} /> Hacer pedido →
+          </motion.a>
         </div>
       </header>
 
@@ -741,16 +742,17 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   </div>
                 </div>
 
-                <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 17 }} style={{ width: "100%", marginTop: "1.25rem" }}>
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
-                  >
-                    <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
-                  </a>
-                </motion.div>
+                <motion.a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+                >
+                  <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+                </motion.a>
               </motion.div>
             </div>
           </div>
@@ -919,27 +921,28 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   </p>
                 </div>
 
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-                  <a
-                    href={`https://wa.me/524777269595?text=${encodeURIComponent(`¡Hola! Quiero pedir Papacruj sabor ${expandedModalProduct.name} (${expandedModalProduct.price} c/u).`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      backgroundColor: "#25D366",
-                      color: "#FFFFFF",
-                      padding: "0.9rem 1.75rem",
-                      borderRadius: "9999px",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      boxShadow: "0 8px 20px rgba(37, 211, 102, 0.3)"
-                    }}
-                  >
-                    Pedir este sabor →
-                  </a>
-                </motion.div>
+                <motion.a
+                  href={`https://wa.me/524777269595?text=${encodeURIComponent(`¡Hola! Quiero pedir Papacruj sabor ${expandedModalProduct.name} (${expandedModalProduct.price} c/u).`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  style={{
+                    backgroundColor: "#25D366",
+                    color: "#FFFFFF",
+                    padding: "0.9rem 1.75rem",
+                    borderRadius: "9999px",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    boxShadow: "0 8px 20px rgba(37, 211, 102, 0.3)"
+                  }}
+                >
+                  Pedir este sabor →
+                </motion.a>
               </div>
             </motion.div>
           </motion.div>
@@ -996,14 +999,15 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                 <span onClick={() => setUserQuery("Cuántas calorías y proteína tiene")} style={{ fontSize: "0.75rem", backgroundColor: "#E5E7EB", padding: "0.25rem 0.75rem", borderRadius: "8px", color: "#374151", cursor: "pointer" }}>+ Calorías / macros</span>
               </div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>
-                <button
-                  onClick={handleAskChef}
-                  style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "12px", padding: "0.625rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(128, 0, 32, 0.3)" }}
-                >
-                  Preguntar a la IA →
-                </button>
-              </motion.div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                onClick={handleAskChef}
+                style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "12px", padding: "0.625rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(128, 0, 32, 0.3)" }}
+              >
+                Preguntar a la IA →
+              </motion.button>
             </div>
 
             {aiResponse && (
@@ -1217,16 +1221,17 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </p>
 
             <div style={{ marginTop: "2rem" }}>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 400, damping: 17 }} style={{ display: "inline-block" }}>
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.65rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.75rem 2.25rem", fontSize: "1rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
-                >
-                  <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
-                </a>
-              </motion.div>
+              <motion.a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.65rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.75rem 2.25rem", fontSize: "1rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
+              >
+                <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+              </motion.a>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "2.5rem", fontSize: "0.85rem", color: "rgba(17, 24, 39, 0.75)" }}>
