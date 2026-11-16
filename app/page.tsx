@@ -227,81 +227,86 @@ export default function PromptMasterPage() {
   const storyRotateX = useSpring(useTransform(storyMouseY, [-0.5, 0.5], [6, -6]), { stiffness: 200, damping: 25 });
   const storyRotateY = useSpring(useTransform(storyMouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 25 });
 
-  // ESTADOS DEL MINIJUEGO ARCADE
+  // ESTADOS DEL MINIJUEGO ARCADE (FLUIDO Y OPTIMIZADO)
   const [gameState, setGameState] = useState<"IDLE" | "PLAYING" | "GAMEOVER">("IDLE");
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [basketX, setBasketX] = useState(50); // Porcentaje de 0 a 100
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
-  // Objetos cayendo en el juego
   const [fallingItems, setFallingItems] = useState<
     Array<{ id: number; x: number; y: number; type: "chip" | "salsa" | "bomba"; speed: number }>
   >([]);
 
-  // Control del bucle del minijuego
+  // Bucle de juego ultrafluido con requestAnimationFrame
   useEffect(() => {
     if (gameState !== "PLAYING") return;
 
-    // Temporizador de 30 segundos
-    const timerInterval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setGameState("GAMEOVER");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    let spawnTimer = 0;
+    let gameTimer = 30;
 
-    // Generador de objetos
-    const spawnerInterval = setInterval(() => {
-      setFallingItems((prev) => {
-        if (prev.length > 12) return prev;
-        const rand = Math.random();
-        let type: "chip" | "salsa" | "bomba" = "chip";
-        if (rand > 0.8) type = "bomba";
-        else if (rand > 0.65) type = "salsa";
+    const runGameLoop = (now: number) => {
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
 
-        return [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            x: Math.floor(Math.random() * 85) + 5, // 5% a 90%
-            y: 0,
-            type,
-            speed: type === "bomba" ? 2.2 : type === "salsa" ? 1.8 : 1.4,
-          },
-        ];
-      });
-    }, 600);
+      // Actualizar temporizador de 30 segundos de forma precisa
+      gameTimer -= delta;
+      if (gameTimer <= 0) {
+        setTimeLeft(0);
+        setGameState("GAMEOVER");
+        return;
+      }
+      setTimeLeft(Math.ceil(gameTimer));
 
-    // Animación de caída y detección de colisiones con la canasta
-    const frameInterval = setInterval(() => {
+      // Generar objetos cada 500ms
+      spawnTimer += delta;
+      if (spawnTimer >= 0.5) {
+        spawnTimer = 0;
+        setFallingItems((prev) => {
+          if (prev.length > 15) return prev;
+          const rand = Math.random();
+          let type: "chip" | "salsa" | "bomba" = "chip";
+          if (rand > 0.8) type = "bomba";
+          else if (rand > 0.65) type = "salsa";
+
+          return [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              x: Math.floor(Math.random() * 85) + 5,
+              y: -5,
+              type,
+              speed: type === "bomba" ? 38 : type === "salsa" ? 32 : 26, // velocidad en % por segundo
+            },
+          ];
+        });
+      }
+
+      // Mover elementos y detectar colisiones con alta fluidez
       setFallingItems((prev) =>
         prev
-          .map((item) => ({ ...item, y: item.y + item.speed }))
+          .map((item) => ({ ...item, y: item.y + item.speed * delta }))
           .filter((item) => {
-            // Si llega al fondo (y >= 88)
-            if (item.y >= 85 && item.y <= 95) {
-              // Comprobar si la canasta (en basketX) lo atrapa (rango de +- 12%)
+            // Zona de colisión con la canasta (y entre 80% y 92%)
+            if (item.y >= 78 && item.y <= 92) {
               if (Math.abs(item.x - basketX) < 12) {
                 if (item.type === "chip") setScore((s) => s + 10);
                 if (item.type === "salsa") setScore((s) => s + 25);
                 if (item.type === "bomba") setScore((s) => Math.max(0, s - 15));
-                return false; // Eliminar objeto atrapado
+                return false; // Desaparece al ser atrapado
               }
             }
-            return item.y < 100; // Eliminar si cae fuera de la pantalla
+            return item.y < 105; // Eliminar si sale de la pantalla
           })
       );
-    }, 30);
 
-    return () => {
-      clearInterval(timerInterval);
-      clearInterval(spawnerInterval);
-      clearInterval(frameInterval);
+      animationFrameId = requestAnimationFrame(runGameLoop);
     };
+
+    animationFrameId = requestAnimationFrame(runGameLoop);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [gameState, basketX]);
 
   const startGame = () => {
@@ -325,7 +330,6 @@ export default function PromptMasterPage() {
     setBasketX(Math.max(10, Math.min(90, x)));
   };
 
-  // Recompensa basada en la puntuación
   const getRewardInfo = (finalScore: number) => {
     if (finalScore >= 200) return { title: "¡Maestro Papacruj!", desc: "¡Increíble habilidad! Te has ganado un descuento especial o envío gratis en tu próximo pedido." };
     if (finalScore >= 100) return { title: "¡Antojo profesional!", desc: "¡Muy bien jugado! Tienes buen reflejo para el crunch." };
@@ -1075,9 +1079,9 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         )}
       </AnimatePresence>
 
-      {/* NUEVA SECCIÓN: MINIJUEGO ARCADE "ATRAPA EL CRUNCH" */}
+      {/* NUEVA SECCIÓN: MINIJUEGO ARCADE "ATRAPA EL CRUNCH" (FONDO BLANCO & ELEMENTOS HIPERRELISTAS) */}
       <section id="arcade" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto", textAlign: "center" }}>
-        <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(128, 0, 32, 0.15)", borderRadius: "36px", padding: "clamp(2rem, 4vw, 3.5rem)", boxShadow: "0 20px 40px rgba(128,0,32,0.06)" }}>
+        <div style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(128, 0, 32, 0.15)", borderRadius: "36px", padding: "clamp(2rem, 4vw, 3.5rem)", boxShadow: "0 20px 40px rgba(128,0,32,0.06)" }}>
           <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}>
             Minijuego Arcade
           </span>
@@ -1088,7 +1092,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             Tienes 30 segundos para atrapar la mayor cantidad de chips de taro y salsa picante especial con tu canastita. ¡Cuidado con los chiles bomba que restan puntos!
           </p>
 
-          {/* CONTENEDOR DEL JUEGO */}
+          {/* CONTENEDOR DEL JUEGO (FONDO BLANCO PULIDO) */}
           <div
             ref={gameAreaRef}
             onMouseMove={handleMouseMoveGame}
@@ -1096,27 +1100,27 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             style={{
               width: "100%",
               height: "420px",
-              backgroundColor: "#111827",
+              backgroundColor: "#FAFAFA",
               borderRadius: "24px",
               position: "relative",
               overflow: "hidden",
               cursor: "ew-resize",
-              border: "2px solid rgba(128,0,32,0.3)",
-              boxShadow: "inset 0 0 30px rgba(0,0,0,0.5)"
+              border: "2px solid rgba(128,0,32,0.25)",
+              boxShadow: "inset 0 0 25px rgba(128,0,32,0.03)"
             }}
           >
             {/* PANTALLA INICIAL DEL JUEGO */}
             {gameState === "IDLE" && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(17,24,39,0.9)", zIndex: 10, padding: "2rem" }}>
-                <h3 style={{ fontSize: "2rem", fontWeight: 800, color: "#FFFFFF", marginBottom: "0.75rem" }}>¿Listo para el desafío?</h3>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.95rem", maxWidth: "28rem", marginBottom: "1.75rem" }}>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.95)", zIndex: 10, padding: "2rem" }}>
+                <h3 style={{ fontSize: "2rem", fontWeight: 800, color: "#111827", marginBottom: "0.75rem" }}>¿Listo para el desafío?</h3>
+                <p style={{ color: "rgba(17,24,39,0.65)", fontSize: "0.95rem", maxWidth: "28rem", marginBottom: "1.75rem" }}>
                   Mueve el cursor o tu dedo horizontalmente para mover la canasta. Atrapa chips (+10), salsas extra (+25) y evade chiles bomba (-15).
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={startGame}
-                  style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.85rem 2.5rem", fontSize: "1.1rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 20px rgba(128,0,32,0.4)" }}
+                  style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.85rem 2.5rem", fontSize: "1.1rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 20px rgba(128,0,32,0.3)" }}
                 >
                   ¡Iniciar Minijuego! 🚀
                 </motion.button>
@@ -1125,18 +1129,18 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
 
             {/* PANTALLA DE GAME OVER */}
             {gameState === "GAMEOVER" && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(17,24,39,0.92)", zIndex: 10, padding: "2rem" }}>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.96)", zIndex: 10, padding: "2rem" }}>
                 <span style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🏆</span>
-                <h3 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#FFFFFF", marginBottom: "0.25rem" }}>¡Tiempo Terminado!</h3>
-                <div style={{ fontSize: "1.25rem", color: "#FF80AB", fontWeight: 700, marginBottom: "0.5rem" }}>
+                <h3 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#111827", marginBottom: "0.25rem" }}>¡Tiempo Terminado!</h3>
+                <div style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700, marginBottom: "0.5rem" }}>
                   Puntuación final: {score} puntos
                 </div>
 
-                <div style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "16px", padding: "1rem 1.5rem", maxWidth: "26rem", margin: "0.75rem 0 1.5rem 0" }}>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#FFFFFF", marginBottom: "0.25rem" }}>
+                <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(128,0,32,0.15)", borderRadius: "16px", padding: "1rem 1.5rem", maxWidth: "26rem", margin: "0.75rem 0 1.5rem 0" }}>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#800020", marginBottom: "0.25rem" }}>
                     {getRewardInfo(score).title}
                   </div>
-                  <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.7)" }}>
+                  <div style={{ fontSize: "0.85rem", color: "rgba(17,24,39,0.7)" }}>
                     {getRewardInfo(score).desc}
                   </div>
                 </div>
@@ -1168,16 +1172,16 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             {/* HUD EN JUEGO */}
             {gameState === "PLAYING" && (
               <div style={{ position: "absolute", top: "1rem", left: "1.5rem", right: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 5, pointerEvents: "none" }}>
-                <div style={{ backgroundColor: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.2)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#FFF", fontSize: "0.9rem", fontWeight: 700 }}>
-                  ⭐ Puntos: <span style={{ color: "#FF80AB" }}>{score}</span>
+                <div style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(17,24,39,0.12)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#111827", fontSize: "0.9rem", fontWeight: 700, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+                  ⭐ Puntos: <span style={{ color: "#800020" }}>{score}</span>
                 </div>
-                <div style={{ backgroundColor: "rgba(128,0,32,0.8)", border: "1px solid rgba(255,255,255,0.2)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#FFF", fontSize: "0.9rem", fontWeight: 700 }}>
+                <div style={{ backgroundColor: "#800020", border: "1px solid rgba(255,255,255,0.2)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#FFF", fontSize: "0.9rem", fontWeight: 700, boxShadow: "0 4px 12px rgba(128,0,32,0.2)" }}>
                   ⏱️ Tiempo: {timeLeft}s
                 </div>
               </div>
             )}
 
-            {/* OBJETOS CAYENDO */}
+            {/* OBJETOS CAYENDO (IMÁGENES HIPERRELISTAS EN LUGAR DE EMOJIS) */}
             {gameState === "PLAYING" &&
               fallingItems.map((item) => (
                 <div
@@ -1186,62 +1190,69 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                     position: "absolute",
                     left: `${item.x}%`,
                     top: `${item.y}%`,
-                    width: "42px",
-                    height: "42px",
+                    width: "48px",
+                    height: "48px",
                     transform: "translate(-50%, -50%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "1.8rem",
                     userSelect: "none",
                     pointerEvents: "none"
                   }}
                 >
-                  {item.type === "chip" && "🥔"}
-                  {item.type === "salsa" && "🔥"}
-                  {item.type === "bomba" && "💣"}
+                  {item.type === "chip" && (
+                    <img src="/adobadas.jpeg" alt="Chip de taro" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", boxShadow: "0 4px 10px rgba(0,0,0,0.25)" }} />
+                  )}
+                  {item.type === "salsa" && (
+                    <img src="/salsa-negra.jpeg" alt="Salsa especial" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", boxShadow: "0 4px 10px rgba(128,0,32,0.35)", border: "2px solid #800020" }} />
+                  )}
+                  {item.type === "bomba" && (
+                    <div style={{ width: "40px", height: "40px", backgroundColor: "#111827", borderRadius: "50%", border: "2px solid #C2410C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", boxShadow: "0 4px 12px rgba(194,65,12,0.4)" }}>
+                      💣
+                    </div>
+                  )}
                 </div>
               ))}
 
-            {/* CANASTA DEL JUGADOR */}
+            {/* CANASTA DEL JUGADOR (DISEÑO HIPERREALISTA DE CANASTA ARTESANAL / VINO) */}
             <div
               style={{
                 position: "absolute",
                 bottom: "1rem",
                 left: `${basketX}%`,
                 transform: "translateX(-50%)",
-                width: "90px",
-                height: "45px",
+                width: "100px",
+                height: "48px",
                 backgroundColor: "#800020",
-                border: "2px solid #FFFFFF",
-                borderRadius: "0 0 24px 24px",
+                border: "3px solid #FFFFFF",
+                borderRadius: "0 0 28px 28px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 16px rgba(0,0,0,0.4)",
-                transition: "left 0.05s linear",
+                boxShadow: "0 10px 20px rgba(128,0,32,0.3)",
+                backgroundImage: "linear-gradient(to bottom, #800020, #570014)",
                 zIndex: 6
               }}
             >
-              <span style={{ fontSize: "1.2rem" }}>🧺</span>
+              <span style={{ fontSize: "1.25rem", color: "#FFF", fontWeight: 800, letterSpacing: "0.05em" }}>PAPA 🧺</span>
             </div>
           </div>
 
           {/* TABLA DE RECOMPENSAS */}
-          <div style={{ marginTop: "2.5rem", textAlign: "left", background: "#FFFFFF", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "20px", padding: "1.5rem" }}>
+          <div style={{ marginTop: "2.5rem", textAlign: "left", background: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "20px", padding: "1.5rem" }}>
             <h4 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#111827", marginBottom: "1rem", textAlign: "center" }}>
               🏆 Tabla de Recompensa Papacruj
             </h4>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", textAlign: "center" }}>
-              <div style={{ padding: "1rem", backgroundColor: "#F9FAFB", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
+              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>0 – 99 Puntos</div>
                 <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Crunch principiante!</div>
               </div>
-              <div style={{ padding: "1rem", backgroundColor: "#F9FAFB", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
+              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>100 – 199 Puntos</div>
                 <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Antojo profesional!</div>
               </div>
-              <div style={{ padding: "1rem", backgroundColor: "#F9FAFB", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
+              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>200+ Puntos</div>
                 <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Maestro Papacruj!</div>
               </div>
