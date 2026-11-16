@@ -220,122 +220,6 @@ export default function PromptMasterPage() {
   const heroRotateX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [8, -8]), { stiffness: 220, damping: 26 });
   const heroRotateY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-10, 10]), { stiffness: 220, damping: 26 });
 
-  // Referencias para la sección "Sobre Nosotros"
-  const storyStageRef = useRef<HTMLDivElement>(null);
-  const storyMouseX = useMotionValue(0);
-  const storyMouseY = useMotionValue(0);
-  const storyRotateX = useSpring(useTransform(storyMouseY, [-0.5, 0.5], [6, -6]), { stiffness: 200, damping: 25 });
-  const storyRotateY = useSpring(useTransform(storyMouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 25 });
-
-  // ESTADOS DEL MINIJUEGO ARCADE (FLUIDO Y OPTIMIZADO)
-  const [gameState, setGameState] = useState<"IDLE" | "PLAYING" | "GAMEOVER">("IDLE");
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [basketX, setBasketX] = useState(50); // Porcentaje de 0 a 100
-  const gameAreaRef = useRef<HTMLDivElement>(null);
-
-  const [fallingItems, setFallingItems] = useState<
-    Array<{ id: number; x: number; y: number; type: "chip" | "salsa" | "bomba"; speed: number }>
-  >([]);
-
-  // Bucle de juego ultrafluido con requestAnimationFrame
-  useEffect(() => {
-    if (gameState !== "PLAYING") return;
-
-    let animationFrameId: number;
-    let lastTime = performance.now();
-    let spawnTimer = 0;
-    let gameTimer = 30;
-
-    const runGameLoop = (now: number) => {
-      const delta = (now - lastTime) / 1000;
-      lastTime = now;
-
-      // Actualizar temporizador de 30 segundos de forma precisa
-      gameTimer -= delta;
-      if (gameTimer <= 0) {
-        setTimeLeft(0);
-        setGameState("GAMEOVER");
-        return;
-      }
-      setTimeLeft(Math.ceil(gameTimer));
-
-      // Generar objetos cada 500ms
-      spawnTimer += delta;
-      if (spawnTimer >= 0.5) {
-        spawnTimer = 0;
-        setFallingItems((prev) => {
-          if (prev.length > 15) return prev;
-          const rand = Math.random();
-          let type: "chip" | "salsa" | "bomba" = "chip";
-          if (rand > 0.8) type = "bomba";
-          else if (rand > 0.65) type = "salsa";
-
-          return [
-            ...prev,
-            {
-              id: Date.now() + Math.random(),
-              x: Math.floor(Math.random() * 85) + 5,
-              y: -5,
-              type,
-              speed: type === "bomba" ? 38 : type === "salsa" ? 32 : 26, // velocidad en % por segundo
-            },
-          ];
-        });
-      }
-
-      // Mover elementos y detectar colisiones con alta fluidez
-      setFallingItems((prev) =>
-        prev
-          .map((item) => ({ ...item, y: item.y + item.speed * delta }))
-          .filter((item) => {
-            // Zona de colisión con la canasta (y entre 80% y 92%)
-            if (item.y >= 78 && item.y <= 92) {
-              if (Math.abs(item.x - basketX) < 12) {
-                if (item.type === "chip") setScore((s) => s + 10);
-                if (item.type === "salsa") setScore((s) => s + 25);
-                if (item.type === "bomba") setScore((s) => Math.max(0, s - 15));
-                return false; // Desaparece al ser atrapado
-              }
-            }
-            return item.y < 105; // Eliminar si sale de la pantalla
-          })
-      );
-
-      animationFrameId = requestAnimationFrame(runGameLoop);
-    };
-
-    animationFrameId = requestAnimationFrame(runGameLoop);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [gameState, basketX]);
-
-  const startGame = () => {
-    setScore(0);
-    setTimeLeft(30);
-    setFallingItems([]);
-    setGameState("PLAYING");
-  };
-
-  const handleMouseMoveGame = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!gameAreaRef.current) return;
-    const rect = gameAreaRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    setBasketX(Math.max(10, Math.min(90, x)));
-  };
-
-  const handleTouchMoveGame = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!gameAreaRef.current || !e.touches[0]) return;
-    const rect = gameAreaRef.current.getBoundingClientRect();
-    const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-    setBasketX(Math.max(10, Math.min(90, x)));
-  };
-
-  const getRewardInfo = (finalScore: number) => {
-    if (finalScore >= 200) return { title: "¡Maestro Papacruj!", desc: "¡Increíble habilidad! Te has ganado un descuento especial o envío gratis en tu próximo pedido." };
-    if (finalScore >= 100) return { title: "¡Antojo profesional!", desc: "¡Muy bien jugado! Tienes buen reflejo para el crunch." };
-    return { title: "¡Crunch principiante!", desc: "¡Sigue practicando para atrapar más chips y evitar los chiles bomba!" };
-  };
-
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [openCurriculum, setOpenCurriculum] = useState<number | null>(0);
 
@@ -594,18 +478,6 @@ export default function PromptMasterPage() {
     heroMouseY.set(0);
   };
 
-  const handleStoryMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!storyStageRef.current) return;
-    const rect = storyStageRef.current.getBoundingClientRect();
-    storyMouseX.set((e.clientX - rect.left) / rect.width - 0.5);
-    storyMouseY.set((e.clientY - rect.top) / rect.height - 0.5);
-  };
-
-  const handleStoryMouseLeave = () => {
-    storyMouseX.set(0);
-    storyMouseY.set(0);
-  };
-
   const scrollToEnvios = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const element = document.getElementById("envios");
@@ -674,7 +546,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
 
   const totalPrice = selectedProduct.unitPrice * quantity;
   const whatsappMessage = encodeURIComponent(
-    `¡Hola! Jugué a "Atrapa el Crunch" en su web y conseguí ${score} puntos. Me interesa hacer un pedido de Papacruj (${quantity} bolsa(s) de ${selectedProduct.name} · Total: $${totalPrice}). ¿Me pueden dar información por favor?`
+    `¡Hola! Me interesa hacer un pedido de Papacruj (${quantity} bolsa(s) de ${selectedProduct.name} · Total: $${totalPrice}). ¿Me pueden dar información por favor?`
   );
   const whatsappUrl = `https://wa.me/524777269595?text=${whatsappMessage}`;
 
@@ -706,7 +578,6 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </a>
 
           <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)", flexWrap: "wrap" }}>
-            <a href="#arcade" style={{ textDecoration: "none", color: "#800020", fontWeight: 700 }}>Minijuego 🎮</a>
             <a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a>
             <a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a>
             <a href="#historia" style={{ textDecoration: "none", color: "inherit" }}>Historia</a>
@@ -1079,188 +950,6 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         )}
       </AnimatePresence>
 
-      {/* NUEVA SECCIÓN: MINIJUEGO ARCADE "ATRAPA EL CRUNCH" (FONDO BLANCO & ELEMENTOS HIPERRELISTAS) */}
-      <section id="arcade" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto", textAlign: "center" }}>
-        <div style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(128, 0, 32, 0.15)", borderRadius: "36px", padding: "clamp(2rem, 4vw, 3.5rem)", boxShadow: "0 20px 40px rgba(128,0,32,0.06)" }}>
-          <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-            Minijuego Arcade
-          </span>
-          <h2 style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.2rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", marginTop: "0.25rem", marginBottom: "1rem" }}>
-            ¡Atrapa el <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Crunch!</span>
-          </h2>
-          <p style={{ color: "rgba(17,24,39,0.7)", fontSize: "1rem", maxWidth: "38rem", margin: "0 auto 2rem", lineHeight: 1.6 }}>
-            Tienes 30 segundos para atrapar la mayor cantidad de chips de taro y salsa picante especial con tu canastita. ¡Cuidado con los chiles bomba que restan puntos!
-          </p>
-
-          {/* CONTENEDOR DEL JUEGO (FONDO BLANCO PULIDO) */}
-          <div
-            ref={gameAreaRef}
-            onMouseMove={handleMouseMoveGame}
-            onTouchMove={handleTouchMoveGame}
-            style={{
-              width: "100%",
-              height: "420px",
-              backgroundColor: "#FAFAFA",
-              borderRadius: "24px",
-              position: "relative",
-              overflow: "hidden",
-              cursor: "ew-resize",
-              border: "2px solid rgba(128,0,32,0.25)",
-              boxShadow: "inset 0 0 25px rgba(128,0,32,0.03)"
-            }}
-          >
-            {/* PANTALLA INICIAL DEL JUEGO */}
-            {gameState === "IDLE" && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.95)", zIndex: 10, padding: "2rem" }}>
-                <h3 style={{ fontSize: "2rem", fontWeight: 800, color: "#111827", marginBottom: "0.75rem" }}>¿Listo para el desafío?</h3>
-                <p style={{ color: "rgba(17,24,39,0.65)", fontSize: "0.95rem", maxWidth: "28rem", marginBottom: "1.75rem" }}>
-                  Mueve el cursor o tu dedo horizontalmente para mover la canasta. Atrapa chips (+10), salsas extra (+25) y evade chiles bomba (-15).
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={startGame}
-                  style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.85rem 2.5rem", fontSize: "1.1rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 8px 20px rgba(128,0,32,0.3)" }}
-                >
-                  ¡Iniciar Minijuego! 🚀
-                </motion.button>
-              </div>
-            )}
-
-            {/* PANTALLA DE GAME OVER */}
-            {gameState === "GAMEOVER" && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.96)", zIndex: 10, padding: "2rem" }}>
-                <span style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🏆</span>
-                <h3 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#111827", marginBottom: "0.25rem" }}>¡Tiempo Terminado!</h3>
-                <div style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700, marginBottom: "0.5rem" }}>
-                  Puntuación final: {score} puntos
-                </div>
-
-                <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(128,0,32,0.15)", borderRadius: "16px", padding: "1rem 1.5rem", maxWidth: "26rem", margin: "0.75rem 0 1.5rem 0" }}>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#800020", marginBottom: "0.25rem" }}>
-                    {getRewardInfo(score).title}
-                  </div>
-                  <div style={{ fontSize: "0.85rem", color: "rgba(17,24,39,0.7)" }}>
-                    {getRewardInfo(score).desc}
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={startGame}
-                    style={{ backgroundColor: "#374151", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.75rem 1.5rem", fontSize: "0.95rem", fontWeight: 700, cursor: "pointer" }}
-                  >
-                    Jugar de nuevo 🔄
-                  </motion.button>
-
-                  <motion.a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.75rem 1.75rem", fontSize: "0.95rem", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 6px 16px rgba(37,211,102,0.3)" }}
-                  >
-                    <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "24px", height: "24px", objectFit: "contain" }} /> Canjear por WhatsApp →
-                  </motion.a>
-                </div>
-              </div>
-            )}
-
-            {/* HUD EN JUEGO */}
-            {gameState === "PLAYING" && (
-              <div style={{ position: "absolute", top: "1rem", left: "1.5rem", right: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 5, pointerEvents: "none" }}>
-                <div style={{ backgroundColor: "#FFFFFF", border: "1px solid rgba(17,24,39,0.12)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#111827", fontSize: "0.9rem", fontWeight: 700, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
-                  ⭐ Puntos: <span style={{ color: "#800020" }}>{score}</span>
-                </div>
-                <div style={{ backgroundColor: "#800020", border: "1px solid rgba(255,255,255,0.2)", padding: "0.4rem 1rem", borderRadius: "999px", color: "#FFF", fontSize: "0.9rem", fontWeight: 700, boxShadow: "0 4px 12px rgba(128,0,32,0.2)" }}>
-                  ⏱️ Tiempo: {timeLeft}s
-                </div>
-              </div>
-            )}
-
-            {/* OBJETOS CAYENDO (IMÁGENES HIPERRELISTAS EN LUGAR DE EMOJIS) */}
-            {gameState === "PLAYING" &&
-              fallingItems.map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    position: "absolute",
-                    left: `${item.x}%`,
-                    top: `${item.y}%`,
-                    width: "48px",
-                    height: "48px",
-                    transform: "translate(-50%, -50%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    userSelect: "none",
-                    pointerEvents: "none"
-                  }}
-                >
-                  {item.type === "chip" && (
-                    <img src="/adobadas.jpeg" alt="Chip de taro" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", boxShadow: "0 4px 10px rgba(0,0,0,0.25)" }} />
-                  )}
-                  {item.type === "salsa" && (
-                    <img src="/salsa-negra.jpeg" alt="Salsa especial" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", boxShadow: "0 4px 10px rgba(128,0,32,0.35)", border: "2px solid #800020" }} />
-                  )}
-                  {item.type === "bomba" && (
-                    <div style={{ width: "40px", height: "40px", backgroundColor: "#111827", borderRadius: "50%", border: "2px solid #C2410C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", boxShadow: "0 4px 12px rgba(194,65,12,0.4)" }}>
-                      💣
-                    </div>
-                  )}
-                </div>
-              ))}
-
-            {/* CANASTA DEL JUGADOR (DISEÑO HIPERREALISTA DE CANASTA ARTESANAL / VINO) */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "1rem",
-                left: `${basketX}%`,
-                transform: "translateX(-50%)",
-                width: "100px",
-                height: "48px",
-                backgroundColor: "#800020",
-                border: "3px solid #FFFFFF",
-                borderRadius: "0 0 28px 28px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 10px 20px rgba(128,0,32,0.3)",
-                backgroundImage: "linear-gradient(to bottom, #800020, #570014)",
-                zIndex: 6
-              }}
-            >
-              <span style={{ fontSize: "1.25rem", color: "#FFF", fontWeight: 800, letterSpacing: "0.05em" }}>PAPA 🧺</span>
-            </div>
-          </div>
-
-          {/* TABLA DE RECOMPENSAS */}
-          <div style={{ marginTop: "2.5rem", textAlign: "left", background: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "20px", padding: "1.5rem" }}>
-            <h4 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#111827", marginBottom: "1rem", textAlign: "center" }}>
-              🏆 Tabla de Recompensa Papacruj
-            </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", textAlign: "center" }}>
-              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>0 – 99 Puntos</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Crunch principiante!</div>
-              </div>
-              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>100 – 199 Puntos</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Antojo profesional!</div>
-              </div>
-              <div style={{ padding: "1rem", backgroundColor: "#FFFFFF", borderRadius: "12px", border: "1px solid rgba(17,24,39,0.05)" }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#800020" }}>200+ Puntos</div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#111827", marginTop: "0.2rem" }}>¡Maestro Papacruj!</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* HERO SECTION (PAPACRUJ CHEF) */}
       <section
         style={{
@@ -1560,18 +1249,13 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (BRANDING: BLANCO Y COLOR VINO) */}
+      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (ESTABLE Y FIJA - SIN INCLINACIÓN 3D) */}
       <section
         id="historia"
-        ref={storyStageRef}
-        onMouseMove={handleStoryMouseMove}
-        onMouseLeave={handleStoryMouseLeave}
-        style={{ padding: "4rem 1.5rem 7rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left", perspective: "1000px" }}
+        style={{ padding: "4rem 1.5rem 7rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}
       >
-        <motion.div
+        <div
           style={{
-            rotateX: storyRotateX,
-            rotateY: storyRotateY,
             backgroundColor: "#FFFFFF",
             color: "#111827",
             border: "1px solid rgba(128, 0, 32, 0.15)",
@@ -1580,54 +1264,29 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             boxShadow: "0 25px 60px rgba(128, 0, 32, 0.08)",
             backgroundImage: "radial-gradient(circle at top right, rgba(128, 0, 32, 0.05), transparent 70%)",
             position: "relative",
-            overflow: "hidden",
-            transformStyle: "preserve-3d"
+            overflow: "hidden"
           }}
         >
-          {/* Badge dinámico vino */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.08)", border: "1px solid rgba(128, 0, 32, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}
-          >
+          {/* Badge de sección vino */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.08)", border: "1px solid rgba(128, 0, 32, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}>
             <span style={{ backgroundColor: "#800020", width: "8px", height: "8px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 10px rgba(128,0,32,0.4)" }} />
             Sobre Nosotros
-          </motion.div>
+          </div>
           
-          {/* TÍTULO DINÁMICO */}
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}
-          >
-            <motion.span whileHover={{ x: 6, color: "#800020" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Dos amigas.</motion.span> <br />
-            <motion.span whileHover={{ x: 6, color: "#800020" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Una idea.</motion.span> <br />
+          {/* TÍTULO */}
+          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}>
+            Dos amigas. <br />
+            Una idea. <br />
             <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", textShadow: "0 0 25px rgba(128,0,32,0.15)" }}>Mucho crunch.</span>
-          </motion.h2>
+          </h2>
 
           {/* INTRO */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}
-          >
+          <div style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}>
             PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
-          </motion.div>
+          </div>
 
           {/* PÁRRAFOS */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            style={{ fontSize: "1.05rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}
-          >
+          <div style={{ fontSize: "1.05rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             <p>
               Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
             </p>
@@ -1637,20 +1296,13 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <p>
               Cuidamos nuestros sabores y cada detalle de la marca para que pruebes PAPACRUJ por curiosidad y vuelvas por su sabor.
             </p>
-          </motion.div>
+          </div>
 
           {/* CIERRE */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(128, 0, 32, 0.15)", paddingTop: "2rem", cursor: "default" }}
-          >
+          <div style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(128, 0, 32, 0.15)", paddingTop: "2rem" }}>
             Porque disfrutar y cuidarte pueden ir juntos.
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* FOOTER */}
