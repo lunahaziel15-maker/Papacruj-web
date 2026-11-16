@@ -787,7 +787,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.12em" }}>
               Colección Completa
             </span>
-            <h2 style={{ fontSize: "clamp(2rem, 4vw, 2.75rem)", fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", marginTop: "0.25rem" }}>
+            <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", marginTop: "0.25rem", lineHeight: 1.1 }}>
               Explora los <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>4 sabores</span>
             </h2>
           </div>
@@ -966,7 +966,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             Papacruj Chef IA Multitarea Avanzada
           </div>
 
-          <h1 style={{ fontSize: "clamp(3.2rem, 7vw, 5.5rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.04em", lineHeight: 1.05 }}>
+          <h1 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.04em", lineHeight: 1.1 }}>
             <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Papacruj</span><br />
             Disfruta ligero.
           </h1>
@@ -1095,7 +1095,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
       {/* EVENTOS Y MAYOREO SECTION */}
       <section id="curriculum" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em" }}>
+          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
             Papacruj en tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>eventos</span>
           </h2>
           <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem", fontSize: "1rem" }}>
@@ -1145,7 +1145,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
       {/* REVIEWS SECTION */}
       <section id="reviews" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", maxWidth: "45rem", margin: "0 auto 3rem" }}>
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em" }}>
+          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
             Lo que dicen nuestros <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>clientes</span>
           </h2>
         </div>
@@ -1174,7 +1174,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
       {/* FAQS SECTION */}
       <section id="faq" style={{ padding: "5rem 1.5rem", maxWidth: "55rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "2.5rem", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em" }}>
+          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
             Preguntas <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>sobre envíos y pedidos</span>
           </h2>
           <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem" }}>Todo lo que necesitas saber sobre entregas en León, Gto. y envíos nacionales.</p>
@@ -1249,7 +1249,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (ESTABLE Y FIJA - SIN INCLINACIÓN 3D) */}
+      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (ESTABLE Y FIJA) */}
       <section
         id="historia"
         style={{ padding: "4rem 1.5rem 7rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}
