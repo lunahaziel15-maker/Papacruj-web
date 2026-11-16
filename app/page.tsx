@@ -1249,24 +1249,54 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </section>
 
-      {/* NUEVA SECCIÓN: SOBRE NOSOTROS / HISTORIA */}
+      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA CON ANIMACIONES DE SCROLL */}
       <section id="historia" style={{ padding: "4rem 1.5rem 6rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}>
-        <div style={{ backgroundColor: "#FAF7F2", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "36px", padding: "clamp(2.5rem, 5vw, 4.5rem)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
-          <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1rem" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          style={{ backgroundColor: "#FAF7F2", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "36px", padding: "clamp(2.5rem, 5vw, 4.5rem)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1rem" }}
+          >
             Sobre Nosotros
-          </div>
+          </motion.div>
           
-          <h2 style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.15, marginBottom: "2.5rem" }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            style={{ fontSize: "clamp(2rem, 4.5vw, 3.2rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.15, marginBottom: "2.5rem" }}
+          >
             Dos amigas. <br />
             Una idea. <br />
             <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Mucho crunch.</span>
-          </h2>
+          </motion.h2>
 
-          <div style={{ fontSize: "clamp(1.15rem, 2vw, 1.35rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            style={{ fontSize: "clamp(1.15rem, 2vw, 1.35rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}
+          >
             PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
-          </div>
+          </motion.div>
 
-          <div style={{ fontSize: "1.025rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            style={{ fontSize: "1.025rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          >
             <p>
               Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
             </p>
@@ -1276,12 +1306,18 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             <p>
               Cuidamos nuestros sabores y cada detalle de la marca para que pruebes PAPACRUJ por curiosidad y vuelvas por su sabor.
             </p>
-          </div>
+          </motion.div>
 
-          <div style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(17,24,39,0.08)", paddingTop: "2rem" }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(17,24,39,0.08)", paddingTop: "2rem" }}
+          >
             Porque disfrutar y cuidarte pueden ir juntos.
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* FOOTER */}
