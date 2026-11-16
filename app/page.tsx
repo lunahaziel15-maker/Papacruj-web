@@ -1268,7 +1268,7 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         </div>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA ULTRA DINÁMICA CON 3D TILT Y ANIMACIONES */}
+      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (BRANDING: BLANCO Y COLOR VINO) */}
       <section
         id="historia"
         ref={storyStageRef}
@@ -1280,41 +1280,41 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           style={{
             rotateX: storyRotateX,
             rotateY: storyRotateY,
-            backgroundColor: "#111827",
-            color: "#FFFFFF",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
+            backgroundColor: "#FFFFFF",
+            color: "#111827",
+            border: "1px solid rgba(128, 0, 32, 0.15)",
             borderRadius: "36px",
             padding: "clamp(2.5rem, 5vw, 4.5rem)",
-            boxShadow: "0 25px 60px rgba(0,0,0,0.35)",
-            backgroundImage: "radial-gradient(circle at top right, rgba(128, 0, 32, 0.35), transparent 70%)",
+            boxShadow: "0 25px 60px rgba(128, 0, 32, 0.08)",
+            backgroundImage: "radial-gradient(circle at top right, rgba(128, 0, 32, 0.05), transparent 70%)",
             position: "relative",
             overflow: "hidden",
             transformStyle: "preserve-3d"
           }}
         >
-          {/* Badge dinámico con brillo */}
+          {/* Badge dinámico vino */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.3)", border: "1px solid rgba(255, 255, 255, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#FF80AB", textTransform: "uppercase", letterSpacing: "0.15em" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.08)", border: "1px solid rgba(128, 0, 32, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}
           >
-            <span style={{ backgroundColor: "#FF4081", width: "8px", height: "8px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 10px #FF4081" }} />
+            <span style={{ backgroundColor: "#800020", width: "8px", height: "8px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 10px rgba(128,0,32,0.4)" }} />
             Sobre Nosotros
           </motion.div>
           
-          {/* TÍTULO DINÁMICO ESCALONADO */}
+          {/* TÍTULO DINÁMICO */}
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}
+            style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}
           >
-            <motion.span whileHover={{ x: 6, color: "#FF80AB" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Dos amigas.</motion.span> <br />
-            <motion.span whileHover={{ x: 6, color: "#FF80AB" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Una idea.</motion.span> <br />
-            <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#FF4081", textShadow: "0 0 25px rgba(255,64,129,0.4)" }}>Mucho crunch.</span>
+            <motion.span whileHover={{ x: 6, color: "#800020" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Dos amigas.</motion.span> <br />
+            <motion.span whileHover={{ x: 6, color: "#800020" }} transition={{ type: "spring", stiffness: 300, damping: 15 }} style={{ display: "inline-block", cursor: "default" }}>Una idea.</motion.span> <br />
+            <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", textShadow: "0 0 25px rgba(128,0,32,0.15)" }}>Mucho crunch.</span>
           </motion.h2>
 
           {/* INTRO */}
@@ -1323,18 +1323,18 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.25 }}
-            style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#F3F4F6", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}
+            style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}
           >
             PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
           </motion.div>
 
-          {/* PÁRRAFOS DINÁMICOS */}
+          {/* PÁRRAFOS */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            style={{ fontSize: "1.05rem", color: "rgba(255, 255, 255, 0.8)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}
+            style={{ fontSize: "1.05rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}
           >
             <p>
               Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
@@ -1347,14 +1347,14 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </p>
           </motion.div>
 
-          {/* CIERRE LLAMATIVO CON HOVER POP */}
+          {/* CIERRE */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#FF80AB", fontWeight: 700, borderTop: "1px solid rgba(255, 255, 255, 0.15)", paddingTop: "2rem", cursor: "default" }}
+            style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(128, 0, 32, 0.15)", paddingTop: "2rem", cursor: "default" }}
           >
             Porque disfrutar y cuidarte pueden ir juntos.
           </motion.div>
