@@ -4,6 +4,235 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Streamdown } from "streamdown";
+
+const GeminiSparkle = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 28 28"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ flexShrink: 0 }}
+  >
+    <defs>
+      <linearGradient id="geminiChatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#3B82F6" />
+        <stop offset="45%" stopColor="#8B5CF6" />
+        <stop offset="80%" stopColor="#EC4899" />
+        <stop offset="100%" stopColor="#06B6D4" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M14 2C14 9.5 18.5 14 26 14C18.5 14 14 18.5 14 26C14 18.5 9.5 14 2 14C9.5 14 14 9.5 14 2Z"
+      fill="url(#geminiChatGrad)"
+    />
+  </svg>
+);
+
+function ChatWidget() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
+    { role: "assistant", content: "Hola. Soy el asistente inteligente de Papacruj. Pregúntame por nuestros sabores artesanales, precios o métodos de envío." },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
+
+  async function send() {
+    const text = input.trim();
+    if (!text || loading) return;
+
+    const next = [...messages, { role: "user" as const, content: text }];
+    setMessages([...next, { role: "assistant" as const, content: "" }]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: next }),
+      });
+
+      if (!res.ok || !res.body) {
+        const msg = res.status === 429 ? "Has superado el límite de velocidad. Por favor, espera un minuto e intenta de nuevo." : "Lo siento, ha ocurrido un error de conexión. Intenta de nuevo.";
+        setMessages([...next, { role: "assistant", content: msg }]);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages([...next, { role: "assistant", content: acc }]);
+      }
+    } catch {
+      setMessages([...next, { role: "assistant", content: "Sin conexión con el servidor. Intenta de nuevo." }]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <style jsx global>{`
+        @keyframes geminiFluidFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes sparkleRotate {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.18); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        .gemini-widget-border {
+          position: relative;
+          border-radius: 28px;
+          padding: 2.5px;
+          background: linear-gradient(120deg, #3B82F6, #8B5CF6, #EC4899, #06B6D4, #3B82F6);
+          background-size: 300% 300%;
+          animation: geminiFluidFlow 4s ease infinite;
+          box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.35);
+        }
+        .gemini-fluid-title {
+          background: linear-gradient(120deg, #3B82F6, #8B5CF6, #EC4899, #06B6D4, #3B82F6);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: geminiFluidFlow 4s ease infinite;
+        }
+        .sparkle-spin {
+          animation: sparkleRotate 2.5s linear infinite;
+        }
+      `}</style>
+
+      {/* Botón flotante con fondo blanco y borde fluido */}
+      <motion.button
+        onClick={() => setOpen(!open)}
+        aria-label="Abrir asistente de IA"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        style={{
+          position: "fixed",
+          bottom: "1.5rem",
+          right: "1.5rem",
+          zIndex: 90,
+          width: "60px",
+          height: "60px",
+          borderRadius: "50%",
+          border: "2px solid rgba(139, 92, 246, 0.35)",
+          background: "#FFFFFF",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 10px 25px rgba(59, 130, 246, 0.25)",
+        }}
+      >
+        {open ? (
+          <span style={{ fontSize: "1.4rem", fontWeight: 700, color: "#3B82F6" }}>✕</span>
+        ) : (
+          <GeminiSparkle size={28} className="sparkle-spin" />
+        )}
+      </motion.button>
+
+      {open && (
+        <div style={{ position: "fixed", bottom: "5.75rem", right: "1.5rem", zIndex: 90, width: "min(400px, calc(100vw - 2.5rem))" }} className="gemini-widget-border">
+          <div
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "26px",
+              height: "min(540px, 72vh)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(17,24,39,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "linear-gradient(180deg, rgba(248,250,252,1) 0%, rgba(255,255,255,1) 100%)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <GeminiSparkle size={22} />
+                <span style={{ fontWeight: 800, fontSize: "1rem" }} className="gemini-fluid-title">
+                  Papacruj Intelligence
+                </span>
+              </div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#4B5563", background: "rgba(59, 130, 246, 0.1)", padding: "0.2rem 0.6rem", borderRadius: "999px" }}>
+                Gemini Flash
+              </span>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.85rem", fontSize: "0.91rem", backgroundColor: "#F8FAFC" }}>
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  style={{
+                    alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                    maxWidth: "88%",
+                    backgroundColor: m.role === "user" ? "#2563EB" : "#FFFFFF",
+                    color: m.role === "user" ? "#FFF" : "#1F2937",
+                    padding: "0.75rem 1rem",
+                    borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                    lineHeight: 1.55,
+                    boxShadow: m.role === "user" ? "0 4px 12px rgba(37, 99, 235, 0.25)" : "0 2px 8px rgba(17,24,39,0.05)",
+                    border: m.role === "assistant" ? "1px solid rgba(229, 231, 235, 1)" : "none",
+                  }}
+                >
+                  {m.role === "assistant" ? <Streamdown>{m.content || "Generando respuesta..."}</Streamdown> : m.content}
+                </div>
+              ))}
+              <div ref={endRef} />
+            </div>
+
+            <form
+              onSubmit={(e) => { e.preventDefault(); send(); }}
+              style={{ display: "flex", gap: "0.5rem", padding: "0.85rem 1rem", borderTop: "1px solid rgba(17,24,39,0.08)", backgroundColor: "#FFFFFF" }}
+            >
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Pregunta sobre sabores, precios o paquetes..."
+                style={{ flex: 1, border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: "9999px", padding: "0.65rem 1.1rem", fontSize: "0.9rem", outline: "none", color: "#111827", backgroundColor: "#F9FAFB" }}
+              />
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                style={{
+                  background: "linear-gradient(120deg, #2563EB, #7C3AED, #EC4899)",
+                  backgroundSize: "200% 200%",
+                  color: "#FFF",
+                  border: "none",
+                  borderRadius: "9999px",
+                  padding: "0 1.25rem",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  cursor: "pointer",
+                  opacity: loading ? 0.6 : 1,
+                  boxShadow: "0 6px 16px rgba(37, 99, 235, 0.35)"
+                }}
+              >
+                Enviar
+              </motion.button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 const CURRICULUM = [
   {
@@ -94,7 +323,6 @@ const FAQS = [
   { q: "¿Tienen precios especiales para mayoreo o eventos?", a: "¡Claro que sí! Contamos con paquetes especiales para fiestas, reuniones o si deseas revender en tu negocio." }
 ];
 
-// COMPONENTE DE TARJETA AISLADO
 const ProductCard = React.memo(function ProductCard({
   product,
   onSelectProduct,
@@ -227,38 +455,8 @@ export default function PromptMasterPage() {
   const [expandedModalProduct, setExpandedModalProduct] = useState<(typeof PRODUCTS)[0] | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  const [userQuery, setUserQuery] = useState("");
-  const [placeholderText, setPlaceholderText] = useState("");
-  const fullPlaceholder = "Pregúntale lo que sea: proteína, calorías, dips, recetas...";
-
-  const [chefStatus, setChefStatus] = useState<"Listo" | "Procesando consulta culinaria..." | "¡Listo!">("Listo");
-  const [aiResponse, setAiResponse] = useState<{
-    type: "recipe" | "macros" | "answer";
-    title: string;
-    subtitle?: string;
-    content?: string;
-    macrosData?: { calories: string; protein: string; carbs: string; fats: string };
-    ingredients?: string[];
-    steps?: string[];
-  } | null>(null);
-
   const mountRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    let index = 0;
-    const typingInterval = setInterval(() => {
-      if (index <= fullPlaceholder.length) {
-        setPlaceholderText(fullPlaceholder.substring(0, index));
-        index++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 55);
-
-    return () => clearInterval(typingInterval);
-  }, []);
-
-  // MOTOR 3D ULTRALIGERO
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -486,64 +684,6 @@ export default function PromptMasterPage() {
     }
   };
 
-  const handleAskChef = async () => {
-    const queryToUse = userQuery.trim() || "Dame una receta creativa y deliciosa para preparar mis Papacruj";
-    setChefStatus("Procesando consulta culinaria...");
-    setAiResponse(null);
-
-    const systemPrompt = `Eres "Papacruj Chef", el asistente culinario y nutricional oficial de Papacruj.
-Datos reales de Papacruj:
-- Producto: Chips artesanales de taro (malanga) crujientes, ligeras y libres de gluten.
-- Presentación: Bolsas de 100 gramos a $50 MXN cada una.
-- 4 Sabores: Adobadas, Especie con Crema, Salsa Negra y Habanero Limón.
-- Ubicación y envíos: Entregas rápidas a domicilio en León, Guanajuato y envíos nacionales seguros a todo México.
-- Pedidos: WhatsApp +52 477 726 9595.
-- Macros aproximados por porción de 50g de chips de taro: 250 kcal, 4.0g proteína, 32.0g carbohidratos, 11.5g grasas, alto contenido en fibra.
-
-Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE un objeto JSON válido (sin texto adicional ni bloques markdown) usando exactamente una de estas 3 estructuras:
-1) Si pide receta, botana preparada, dip o maridaje:
-{"type":"recipe","title":"Nombre de la receta","subtitle":"Tiempo de preparación: X minutos","ingredients":["Ingrediente 1","Ingrediente 2"],"steps":["Paso 1","Paso 2"]}
-2) Si pregunta por calorías, proteína, macros, carbohidratos o dieta:
-{"type":"macros","title":"Desglose Nutricional (Porción de 50g)","content":"Explicación breve sobre los beneficios del taro y sus macros.","macrosData":{"calories":"250 kcal","protein":"4.0 g","carbs":"32.0 g","fats":"11.5 g"}}
-3) Para cualquier otra consulta sobre sabores, envíos, precios, ingredientes o consejos:
-{"type":"answer","title":"Respuesta de Papacruj Chef","content":"Tu respuesta completa aquí."}`;
-
-    try {
-      const response = await fetch("https://text.pollinations.ai/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: queryToUse }
-          ],
-          model: "openai",
-          jsonMode: true
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error en la respuesta de la IA");
-      }
-
-      const rawText = await response.text();
-      const cleanedJson = rawText.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(cleanedJson);
-
-      setChefStatus("¡Listo!");
-      setAiResponse(parsed);
-    } catch (error) {
-      setChefStatus("¡Listo!");
-      setAiResponse({
-        type: "answer",
-        title: "Papacruj Chef",
-        content: `Sobre "${queryToUse}": Nuestras chips de taro Papacruj (100g a $50 MXN) son crujientes, ligeras y sin gluten. Puedes disfrutarlas solas en cualquiera de nuestros 4 sabores (Adobadas, Especie con Crema, Salsa Negra y Habanero Limón) o acompañarlas con limón, salsas negras y guacamole fresco. Hacemos envíos rápidos en León, Gto. y a todo México.`,
-      });
-    }
-  };
-
   const totalPrice = selectedProduct.unitPrice * quantity;
   const whatsappMessage = encodeURIComponent(
     `¡Hola! Me interesa hacer un pedido de Papacruj (${quantity} bolsa(s) de ${selectedProduct.name} · Total: $${totalPrice}). ¿Me pueden dar información por favor?`
@@ -725,7 +865,6 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
                   />
                 </div>
 
-                {/* PRECIO DINÁMICO */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "1.25rem" }}>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)" }}>
@@ -950,148 +1089,6 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
         )}
       </AnimatePresence>
 
-      {/* HERO SECTION (PAPACRUJ CHEF) */}
-      <section
-        style={{
-          position: "relative",
-          padding: "5rem 1.5rem 6rem",
-          textAlign: "center",
-          overflow: "hidden",
-          background: "radial-gradient(circle at 50% 20%, rgba(128, 0, 32, 0.08), transparent 60%)"
-        }}
-      >
-        <div style={{ maxWidth: "55rem", margin: "0 auto", position: "relative", zIndex: 10 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", backgroundColor: "#F9FAFB", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8125rem", color: "#374151" }}>
-            <span style={{ backgroundColor: "#800020", width: "0.5rem", height: "0.5rem", borderRadius: "9999px", display: "inline-block" }} />
-            Papacruj Chef IA Multitarea Avanzada
-          </div>
-
-          <h1 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.04em", lineHeight: 1.1 }}>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Papacruj</span><br />
-            Disfruta ligero.
-          </h1>
-
-          <p style={{ fontSize: "1.125rem", color: "rgba(17, 24, 39, 0.65)", maxWidth: "38rem", margin: "1.5rem auto 0", lineHeight: 1.6 }}>
-            Para ese antojo, ese plan y ese «una más». Tu asistente culinario entrenado con recetas reales de botana mexicana y macros.
-          </p>
-
-          {/* PAPACRUJ CHEF INTERACTIVO */}
-          <div style={{ marginTop: "3.5rem", backgroundColor: "#F9FAFB", border: "1px solid rgba(17, 24, 39, 0.08)", borderRadius: "24px", padding: "1.5rem", textAlign: "left", boxShadow: "0 20px 40px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#111827", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                🥔 Papacruj Chef Entrenado
-              </span>
-              <span style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem", backgroundColor: "rgba(128, 0, 32, 0.12)", color: "#800020", borderRadius: "999px", fontWeight: 600 }}>
-                {chefStatus}
-              </span>
-            </div>
-
-            <textarea
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-              placeholder={placeholderText}
-              style={{ width: "100%", height: "90px", backgroundColor: "#FFFFFF", border: "1px solid rgba(17, 24, 39, 0.12)", borderRadius: "12px", padding: "1rem", color: "#111827", fontSize: "0.95rem", resize: "none", outline: "none", boxSizing: "border-box" }}
-            />
-
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <span onClick={() => setUserQuery("Receta con salsa maggi y limón")} style={{ fontSize: "0.75rem", backgroundColor: "#E5E7EB", padding: "0.25rem 0.75rem", borderRadius: "8px", color: "#374151", cursor: "pointer" }}>+ Estilo salsas negras</span>
-                <span onClick={() => setUserQuery("Receta con cueritos y chamoy")} style={{ fontSize: "0.75rem", backgroundColor: "#E5E7EB", padding: "0.25rem 0.75rem", borderRadius: "8px", color: "#374151", cursor: "pointer" }}>+ Con cueritos</span>
-                <span onClick={() => setUserQuery("Cuántas calorías y proteína tiene")} style={{ fontSize: "0.75rem", backgroundColor: "#E5E7EB", padding: "0.25rem 0.75rem", borderRadius: "8px", color: "#374151", cursor: "pointer" }}>+ Calorías / macros</span>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                onClick={handleAskChef}
-                style={{ backgroundColor: "#800020", color: "#FFFFFF", border: "none", borderRadius: "12px", padding: "0.625rem 1.5rem", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(128, 0, 32, 0.3)" }}
-              >
-                Preguntar a la IA →
-              </motion.button>
-            </div>
-
-            {aiResponse && (
-              <div
-                style={{
-                  marginTop: "1.5rem",
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid rgba(128, 0, 32, 0.4)",
-                  borderRadius: "16px",
-                  padding: "1.5rem",
-                  fontFamily: "'Playfair Display', serif",
-                  color: "#111827",
-                  lineHeight: 1.7
-                }}
-              >
-                <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#800020", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  {aiResponse.type === "recipe" ? "🍽️" : aiResponse.type === "macros" ? "📊" : "💡"} {aiResponse.title}
-                </div>
-
-                {aiResponse.subtitle && (
-                  <div style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.6)", marginBottom: "1.25rem", fontStyle: "italic" }}>
-                    ⏱️ {aiResponse.subtitle}
-                  </div>
-                )}
-
-                {aiResponse.content && (
-                  <p style={{ fontSize: "1rem", color: "rgba(17, 24, 39, 0.85)", margin: "0.5rem 0 1rem 0", lineHeight: 1.6 }}>
-                    {aiResponse.content}
-                  </p>
-                )}
-
-                {aiResponse.macrosData && (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "1rem", marginTop: "1rem", marginBottom: "0.5rem" }}>
-                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Calorías</div>
-                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#800020", marginTop: "0.2rem" }}>{aiResponse.macrosData.calories}</div>
-                    </div>
-                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Proteína</div>
-                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.protein}</div>
-                    </div>
-                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Carbohidratos</div>
-                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.carbs}</div>
-                    </div>
-                    <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", padding: "1rem", borderRadius: "12px", textAlign: "center" }}>
-                      <div style={{ fontSize: "0.75rem", color: "rgba(17,24,39,0.6)" }}>Grasas</div>
-                      <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#111827", marginTop: "0.2rem" }}>{aiResponse.macrosData.fats}</div>
-                    </div>
-                  </div>
-                )}
-
-                {aiResponse.ingredients && (
-                  <>
-                    <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem", marginTop: "1rem" }}>
-                      Ingredientes:
-                    </div>
-                    <ul style={{ paddingLeft: "1.25rem", margin: "0 0 1.25rem 0", color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
-                      {aiResponse.ingredients.map((ing, i) => (
-                        <li key={i} style={{ marginBottom: "0.3rem" }}>{ing}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-
-                {aiResponse.steps && (
-                  <>
-                    <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827", marginBottom: "0.5rem" }}>
-                      Preparación paso a paso:
-                    </div>
-                    <ol style={{ paddingLeft: "1.25rem", margin: 0, color: "rgba(17, 24, 39, 0.8)", fontSize: "0.95rem" }}>
-                      {aiResponse.steps.map((step, i) => (
-                        <li key={i} style={{ marginBottom: "0.5rem" }}>{step}</li>
-                      ))}
-                    </ol>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* EVENTOS Y MAYOREO SECTION */}
       <section id="curriculum" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "3rem" }}>
@@ -1242,14 +1239,13 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </div>
           </div>
 
-          {/* CONTENEDOR THREE.JS */}
           <div style={{ width: "100%", height: "360px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
             <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
           </div>
         </div>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA (ESTABLE Y FIJA) */}
+      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA */}
       <section
         id="historia"
         style={{ padding: "4rem 1.5rem 7rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}
@@ -1267,25 +1263,21 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             overflow: "hidden"
           }}
         >
-          {/* Badge de sección vino */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.08)", border: "1px solid rgba(128, 0, 32, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}>
             <span style={{ backgroundColor: "#800020", width: "8px", height: "8px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 10px rgba(128,0,32,0.4)" }} />
             Sobre Nosotros
           </div>
           
-          {/* TÍTULO */}
           <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}>
             Dos amigas. <br />
             Una idea. <br />
             <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", textShadow: "0 0 25px rgba(128,0,32,0.15)" }}>Mucho crunch.</span>
           </h2>
 
-          {/* INTRO */}
           <div style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}>
             PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
           </div>
 
-          {/* PÁRRAFOS */}
           <div style={{ fontSize: "1.05rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             <p>
               Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
@@ -1298,7 +1290,6 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
             </p>
           </div>
 
-          {/* CIERRE */}
           <div style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(128, 0, 32, 0.15)", paddingTop: "2rem" }}>
             Porque disfrutar y cuidarte pueden ir juntos.
           </div>
@@ -1345,6 +1336,8 @@ Responde en español de forma apetitosa, clara y verídica. Devuelve ÚNICAMENTE
           </div>
         </div>
       </footer>
+
+      <ChatWidget />
     </div>
   );
 }

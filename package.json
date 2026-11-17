@@ -9,13 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^4.0.84",
+    "@google/genai": "^3.4.0",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/three": "^0.187.0",
+    "ai": "^7.0.173",
     "framer-motion": "^14.14.0",
     "lightningcss": "^1.33.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "streamdown": "^2.7.1",
     "three": "^0.187.0"
   },
   "devDependencies": {
