@@ -743,6 +743,18 @@ export default function PromptMasterPage() {
         .papacruj-marquee-track:hover {
           animation-play-state: paused;
         }
+        .hero-wa-btn {
+          gap: 0.75rem;
+        }
+        @media (min-width: 768px) {
+          .hero-wa-btn {
+            gap: 0.45rem !important;
+          }
+          .hero-wa-btn svg {
+            width: 40px !important;
+            height: 40px !important;
+          }
+        }
       `}</style>
 
       {/* NAVBAR */}
@@ -921,12 +933,14 @@ export default function PromptMasterPage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="hero-wa-btn"
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.85rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.85rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
                 >
-                  <WhatsAppIcon size={32} /> Hacer pedido por WhatsApp →
+                  <WhatsAppIcon size={32} />
+                  <span style={{ lineHeight: 1.2, textAlign: "left" }}>Hacer pedido por<br />WhatsApp →</span>
                 </motion.a>
               </motion.div>
             </div>
