@@ -748,7 +748,7 @@ export default function PromptMasterPage() {
         }
         @media (min-width: 768px) {
           .hero-wa-btn {
-            gap: 0.45rem !important;
+            gap: 0.85rem !important;
           }
           .hero-wa-btn svg {
             width: 40px !important;
