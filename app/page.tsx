@@ -6,6 +6,19 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Streamdown } from "streamdown";
 
+const WhatsAppIcon = ({ size = 28 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ flexShrink: 0, display: "block" }}
+  >
+    <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.458 3.473 1.328 4.988L2 22l5.188-1.359a9.927 9.927 0 0 0 4.843 1.258h.004c5.515 0 9.968-4.453 9.968-9.969A9.93 9.93 0 0 0 19.08 4.92 9.914 9.914 0 0 0 12.031 2zm5.816 14.254c-.246.691-1.434 1.32-1.992 1.402-.512.075-1.156.109-1.867-.117-.434-.137-.988-.32-1.703-.629-2.996-1.293-4.953-4.309-5.102-4.508-.148-.199-1.219-1.621-1.219-3.094 0-1.472.77-2.195 1.043-2.496.274-.301.598-.375.797-.375.199 0 .398.004.574.012.184.008.43-.07.672.512.246.597.844 2.058.918 2.207.074.148.125.324.023.523-.097.199-.148.324-.297.496-.148.176-.312.391-.445.524-.148.148-.305.312-.133.609.176.301.778 1.281 1.668 2.074 1.148 1.024 2.113 1.34 2.414 1.489.301.148.477.125.652-.074.176-.2.746-.871.945-1.172.199-.301.398-.25.672-.148.273.097 1.742.82 2.043.968.301.153.5.227.574.352.074.125.074.723-.172 1.414z" />
+  </svg>
+);
+
 const GeminiSparkle = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
   <svg
     width={size}
@@ -168,7 +181,7 @@ function ChatWidget() {
                 </span>
               </div>
               <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#4B5563", background: "rgba(59, 130, 246, 0.1)", padding: "0.2rem 0.6rem", borderRadius: "999px" }}>
-                Gemini Flash
+                AI Assistant
               </span>
             </div>
 
@@ -462,8 +475,10 @@ export default function PromptMasterPage() {
     if (!container) return;
 
     const isMobileOrTablet = typeof window !== "undefined" && ("ontouchstart" in window || window.innerWidth < 1024);
-    const width = container.clientWidth || 340;
-    const height = container.clientHeight || 340;
+    const getMobileScale = () => (typeof window !== "undefined" && window.innerWidth < 768 ? 0.0056 : 0.0075);
+
+    const width = container.clientWidth || 300;
+    const height = container.clientHeight || 300;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -495,7 +510,8 @@ export default function PromptMasterPage() {
         if (isDisposed) return;
         const model = gltf.scene;
         loadedModel = model;
-        model.scale.set(0.0075, 0.0075, 0.0075);
+        const s = getMobileScale();
+        model.scale.set(s, s, s);
 
         model.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
@@ -522,6 +538,23 @@ export default function PromptMasterPage() {
         console.error("Error cargando el modelo 3D earth.glb:", error);
       }
     );
+
+    const handleResize = () => {
+      if (!container || isDisposed) return;
+      const newW = container.clientWidth || 300;
+      const newH = container.clientHeight || 300;
+      camera.aspect = newW / newH;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newW, newH);
+      if (loadedModel) {
+        const s = getMobileScale();
+        loadedModel.scale.set(s, s, s);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => handleResize());
+    resizeObserver.observe(container);
+    window.addEventListener("resize", handleResize);
 
     let isDragging = false;
     let isHovered = false;
@@ -631,6 +664,8 @@ export default function PromptMasterPage() {
     return () => {
       isDisposed = true;
       observer.disconnect();
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", handleResize);
       if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
 
       domElement.removeEventListener("mouseenter", onMouseEnter);
@@ -733,9 +768,9 @@ export default function PromptMasterPage() {
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.4rem 1.25rem", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
+            style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.55rem 1.35rem", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
           >
-            <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "30px", height: "30px", objectFit: "contain" }} /> Hacer pedido →
+            <WhatsAppIcon size={24} /> Hacer pedido →
           </motion.a>
         </div>
       </header>
@@ -889,9 +924,9 @@ export default function PromptMasterPage() {
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.65rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.75rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.85rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
                 >
-                  <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+                  <WhatsAppIcon size={32} /> Hacer pedido por WhatsApp →
                 </motion.a>
               </motion.div>
             </div>
@@ -1071,17 +1106,18 @@ export default function PromptMasterPage() {
                   style={{
                     backgroundColor: "#25D366",
                     color: "#FFFFFF",
-                    padding: "0.9rem 1.75rem",
+                    padding: "0.85rem 1.75rem",
                     borderRadius: "9999px",
                     fontWeight: 700,
+                    fontSize: "1rem",
                     textDecoration: "none",
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "0.5rem",
+                    gap: "0.65rem",
                     boxShadow: "0 8px 20px rgba(37, 211, 102, 0.3)"
                   }}
                 >
-                  Pedir este sabor →
+                  <WhatsAppIcon size={28} /> Pedir este sabor →
                 </motion.a>
               </div>
             </motion.div>
@@ -1226,9 +1262,9 @@ export default function PromptMasterPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.65rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.75rem 2.25rem", fontSize: "1rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.85rem 2rem", fontSize: "1.05rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
               >
-                <img src="/whatsapp.png" alt="WhatsApp" style={{ width: "36px", height: "36px", objectFit: "contain" }} /> Hacer pedido por WhatsApp →
+                <WhatsAppIcon size={34} /> Hacer pedido por WhatsApp →
               </motion.a>
             </div>
 
@@ -1239,7 +1275,7 @@ export default function PromptMasterPage() {
             </div>
           </div>
 
-          <div style={{ width: "100%", height: "360px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
+          <div style={{ width: "100%", height: "320px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
             <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
           </div>
         </div>
