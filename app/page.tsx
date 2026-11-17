@@ -130,7 +130,6 @@ function ChatWidget() {
         }
       `}</style>
 
-      {/* Botón flotante con fondo blanco y borde fluido */}
       <motion.button
         onClick={() => setOpen(!open)}
         aria-label="Abrir asistente de IA"
@@ -244,6 +243,555 @@ function ChatWidget() {
         </div>
       )}
     </>
+  );
+}
+
+const STORY_SEGMENTS = [
+  {
+    type: "headline",
+    text: "Dos amigas.\nUna idea.\nMucho crunch.",
+  },
+  {
+    type: "lead",
+    text: "PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.",
+  },
+  {
+    type: "paragraph",
+    text: "Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.",
+  },
+  {
+    type: "paragraph",
+    text: "Nuestros chips de taro tienen 0 mg de grasas trans, 0 mg de colesterol, son altos en fibra, bajos en sodio y no contienen conservadores artificiales. Y hay algo que tenemos muy claro: disfrutar una opción más ligera también debe saber delicioso.",
+  },
+  {
+    type: "paragraph",
+    text: "Cuidamos nuestros sabores y cada detalle de la marca para que pruebes PAPACRUJ por curiosidad y vuelvas por su sabor.",
+  },
+  {
+    type: "closing",
+    text: "Porque disfrutar y cuidarte pueden ir juntos.",
+  },
+];
+
+function HistoriaFolderView({
+  onGoHome,
+}: {
+  onGoHome: (sectionId?: string) => void;
+}) {
+  const [isFolderOpen, setIsFolderOpen] = useState(false);
+  const [charCount, setCharCount] = useState(0);
+
+  const totalChars = STORY_SEGMENTS.reduce((acc, seg) => acc + seg.text.length, 0);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (!isFolderOpen) {
+      setCharCount(0);
+      return;
+    }
+
+    let interval: ReturnType<typeof setInterval>;
+    const startDelay = setTimeout(() => {
+      interval = setInterval(() => {
+        setCharCount((prev) => {
+          if (prev >= totalChars) {
+            clearInterval(interval);
+            return totalChars;
+          }
+          return prev + 2;
+        });
+      }, 18);
+    }, 550);
+
+    return () => {
+      clearTimeout(startDelay);
+      if (interval) clearInterval(interval);
+    };
+  }, [isFolderOpen, totalChars]);
+
+  const handleToggleFolder = () => {
+    setIsFolderOpen((prev) => !prev);
+  };
+
+  let runningOffset = 0;
+
+  return (
+    <motion.div
+      key="historia-view"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#FFFFFF",
+        color: "#111827",
+        fontFamily: "'Inter', sans-serif",
+        backgroundImage:
+          "linear-gradient(to right, rgba(17, 24, 39, 0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(17, 24, 39, 0.045) 1px, transparent 1px)",
+        backgroundSize: "56px 56px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        position: "relative",
+        overflowX: "hidden",
+      }}
+    >
+      <style jsx global>{`
+        @keyframes cursorBlink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        @keyframes canvaFolderFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .writing-pen-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 1.05em;
+          background-color: #7D2AE8;
+          margin-left: 3px;
+          vertical-align: text-bottom;
+          animation: cursorBlink 0.8s infinite;
+        }
+        .canva-folder-back {
+          background: linear-gradient(135deg, #00A8B5, #1D4ED8, #5A32FA, #6D28D9, #00A8B5);
+          background-size: 320% 320%;
+          animation: canvaFolderFlow 9s ease infinite;
+        }
+        .canva-folder-front {
+          background: linear-gradient(125deg, #00C4CC, #2563EB, #5A32FA, #7D2AE8, #00C4CC);
+          background-size: 300% 300%;
+          animation: canvaFolderFlow 7s ease infinite;
+        }
+        .canva-folder-tab {
+          background: linear-gradient(125deg, #00C4CC, #3B82F6, #7D2AE8, #00C4CC);
+          background-size: 300% 300%;
+          animation: canvaFolderFlow 7s ease infinite;
+        }
+      `}</style>
+
+      {/* ESCENARIO CENTRAL: CARPETA ESTILO CANVA (AZUL Y MORADO FLUIDO) */}
+      <main
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3.5rem 1.5rem 3.5rem",
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: "630px",
+            height: isFolderOpen ? "auto" : "clamp(340px, 46vw, 415px)",
+            minHeight: isFolderOpen ? "560px" : undefined,
+            perspective: "1400px",
+            transition: "all 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        >
+          {/* PANEL TRASERO DEL FOLDER CON PESTAÑA SUPERIOR DERECHA */}
+          <div
+            onClick={!isFolderOpen ? handleToggleFolder : undefined}
+            style={{
+              position: isFolderOpen ? "relative" : "absolute",
+              inset: isFolderOpen ? undefined : 0,
+              width: "100%",
+              height: "100%",
+              cursor: !isFolderOpen ? "pointer" : "default",
+            }}
+          >
+            {/* Pestaña trasera superior derecha */}
+            <div
+              className="canva-folder-tab"
+              style={{
+                position: "absolute",
+                top: "-26px",
+                right: "18px",
+                width: "35%",
+                height: "36px",
+                borderTopLeftRadius: "16px",
+                borderTopRightRadius: "16px",
+                borderTop: "1px solid rgba(255,255,255,0.55)",
+                borderLeft: "1px solid rgba(255,255,255,0.45)",
+                borderRight: "1px solid rgba(255,255,255,0.55)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingRight: "1.1rem",
+              }}
+            >
+              <span style={{ color: "rgba(255,255,255,0.92)", fontSize: "0.75rem", fontWeight: 700 }}>
+                ⌃
+              </span>
+            </div>
+
+            {/* Cuerpo trasero de la carpeta con las 4 esquinas redondeadas */}
+            <div
+              className="canva-folder-back"
+              style={{
+                width: "100%",
+                height: isFolderOpen ? "auto" : "100%",
+                minHeight: isFolderOpen ? "560px" : undefined,
+                borderRadius: "22px",
+                border: "1px solid rgba(255,255,255,0.45)",
+                boxShadow: "0 28px 60px -12px rgba(90, 50, 250, 0.32)",
+                padding: isFolderOpen ? "1.25rem" : "1rem",
+                position: "relative",
+              }}
+            >
+              {/* Flecha superior izquierda */}
+              <span
+                style={{
+                  position: "absolute",
+                  top: "0.85rem",
+                  left: "1.1rem",
+                  color: "rgba(255,255,255,0.88)",
+                  fontSize: "0.85rem",
+                  zIndex: 5,
+                }}
+              >
+                ↘
+              </span>
+
+              {/* HOJA INTERIOR CON LA HISTORIA QUE SE ESCRIBE AL ABRIR */}
+              <AnimatePresence>
+                {isFolderOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                    transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      position: "relative",
+                      zIndex: 20,
+                      backgroundColor: "#FFFFFF",
+                      color: "#1C1917",
+                      borderRadius: "16px",
+                      padding: "clamp(1.75rem, 4vw, 2.85rem)",
+                      marginTop: "0.5rem",
+                      boxShadow: "0 20px 45px rgba(17, 24, 39, 0.16)",
+                      border: "1px solid rgba(90, 50, 250, 0.14)",
+                      backgroundImage:
+                        "radial-gradient(circle at top right, rgba(0, 196, 204, 0.04), transparent 60%), repeating-linear-gradient(transparent, transparent 31px, rgba(90, 50, 250, 0.045) 32px)",
+                    }}
+                  >
+                    {/* Encabezado de la hoja */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderBottom: "1px solid rgba(90, 50, 250, 0.18)",
+                        paddingBottom: "0.85rem",
+                        marginBottom: "1.75rem",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.18em", color: "#5A32FA", textTransform: "uppercase" }}>
+                        PAPACRUJ · ARCHIVO DE MARCA
+                      </span>
+                      <button
+                        onClick={handleToggleFolder}
+                        style={{
+                          background: "rgba(90, 50, 250, 0.08)",
+                          border: "1px solid rgba(90, 50, 250, 0.2)",
+                          color: "#5A32FA",
+                          borderRadius: "999px",
+                          padding: "0.25rem 0.85rem",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cerrar folder ✕
+                      </button>
+                    </div>
+
+                    {/* TEXTO ESCRIBIÉNDOSE SUAVEMENTE EN LA HOJA */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                      {STORY_SEGMENTS.map((seg, idx) => {
+                        const segStart = runningOffset;
+                        const segEnd = segStart + seg.text.length;
+                        runningOffset = segEnd;
+
+                        if (charCount <= segStart) return null;
+
+                        const visibleText = seg.text.slice(0, Math.max(0, charCount - segStart));
+                        const isCurrentlyWriting = charCount > segStart && charCount < segEnd;
+
+                        if (seg.type === "headline") {
+                          return (
+                            <h1
+                              key={idx}
+                              style={{
+                                fontSize: "clamp(1.85rem, 4.2vw, 2.75rem)",
+                                fontWeight: 900,
+                                lineHeight: 1.12,
+                                letterSpacing: "-0.03em",
+                                color: "#111827",
+                                whiteSpace: "pre-line",
+                                margin: 0,
+                              }}
+                            >
+                              {visibleText}
+                              {isCurrentlyWriting && <span className="writing-pen-cursor" />}
+                            </h1>
+                          );
+                        }
+
+                        if (seg.type === "lead") {
+                          return (
+                            <p
+                              key={idx}
+                              style={{
+                                fontFamily: "'Playfair Display', serif",
+                                fontSize: "clamp(1.1rem, 2vw, 1.32rem)",
+                                fontWeight: 600,
+                                color: "#5A32FA",
+                                lineHeight: 1.5,
+                                margin: "0.25rem 0",
+                              }}
+                            >
+                              {visibleText}
+                              {isCurrentlyWriting && <span className="writing-pen-cursor" />}
+                            </p>
+                          );
+                        }
+
+                        if (seg.type === "closing") {
+                          return (
+                            <p
+                              key={idx}
+                              style={{
+                                fontFamily: "'Playfair Display', serif",
+                                fontStyle: "italic",
+                                fontWeight: 700,
+                                fontSize: "clamp(1.2rem, 2.2vw, 1.45rem)",
+                                color: "#5A32FA",
+                                borderTop: "1px solid rgba(90, 50, 250, 0.18)",
+                                paddingTop: "1.15rem",
+                                marginTop: "0.5rem",
+                              }}
+                            >
+                              {visibleText}
+                              {charCount >= totalChars || isCurrentlyWriting ? (
+                                <span className="writing-pen-cursor" />
+                              ) : null}
+                            </p>
+                          );
+                        }
+
+                        return (
+                          <p
+                            key={idx}
+                            style={{
+                              fontSize: "0.98rem",
+                              lineHeight: 1.72,
+                              color: "#292524",
+                              margin: 0,
+                            }}
+                          >
+                            {visibleText}
+                            {isCurrentlyWriting && <span className="writing-pen-cursor" />}
+                          </p>
+                        );
+                      })}
+                    </div>
+
+                    {/* ÚNICO BOTÓN PARA REGRESAR AL INICIO (EXPLORAR LOS 4 SABORES) */}
+                    <AnimatePresence>
+                      {charCount >= totalChars && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.45 }}
+                          style={{ marginTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}
+                        >
+                          <span style={{ fontSize: "0.78rem", color: "#78716C", fontWeight: 600 }}>
+                            León, Guanajuato · Disfruta Ligero
+                          </span>
+                          <button
+                            onClick={() => onGoHome("catalogo")}
+                            style={{
+                              background: "linear-gradient(120deg, #00C4CC, #2563EB, #7D2AE8)",
+                              color: "#FFFFFF",
+                              border: "none",
+                              padding: "0.7rem 1.5rem",
+                              borderRadius: "9999px",
+                              fontSize: "0.88rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              boxShadow: "0 8px 20px rgba(90, 50, 250, 0.32)",
+                            }}
+                          >
+                            Explorar los 4 sabores →
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* SOLAPA DELANTERA DEL FOLDER ESTILO CANVA (AZUL Y MORADO FLUIDO) */}
+          <AnimatePresence>
+            {!isFolderOpen && (
+              <motion.div
+                key="front-flap"
+                initial={{ opacity: 0, rotateX: -20 }}
+                animate={{ opacity: 1, rotateX: 0 }}
+                exit={{ opacity: 0, rotateX: -55, y: 35 }}
+                whileHover={{ y: -6, scale: 1.01 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                onClick={handleToggleFolder}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: "84%",
+                  transformOrigin: "bottom center",
+                  cursor: "pointer",
+                  zIndex: 15,
+                  userSelect: "none",
+                }}
+              >
+                {/* Pestaña escalonada derecha de la solapa frontal */}
+                <div
+                  className="canva-folder-tab"
+                  style={{
+                    position: "absolute",
+                    top: "-22px",
+                    right: "18px",
+                    width: "56%",
+                    height: "28px",
+                    borderTopLeftRadius: "16px",
+                    borderTopRightRadius: "16px",
+                    borderTop: "1px solid rgba(255,255,255,0.6)",
+                    borderLeft: "1px solid rgba(255,255,255,0.45)",
+                    borderRight: "1px solid rgba(255,255,255,0.6)",
+                  }}
+                />
+
+                {/* Cuerpo principal de la solapa frontal con todas las esquinas redondeadas */}
+                <div
+                  className="canva-folder-front"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "22px",
+                    border: "1px solid rgba(255,255,255,0.55)",
+                    boxShadow: "0 -8px 24px rgba(37, 99, 235, 0.2), 0 25px 50px -12px rgba(125, 42, 232, 0.35)",
+                    padding: "clamp(1.75rem, 4.5vw, 3.25rem)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Brillo luminoso sedoso */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "radial-gradient(circle at 20% 15%, rgba(255,255,255,0.24), transparent 60%)",
+                      pointerEvents: "none",
+                    }}
+                  />
+
+                  <div style={{ position: "relative", zIndex: 2, marginTop: "0.5rem" }}>
+                    <p
+                      style={{
+                        fontSize: "clamp(0.75rem, 1.4vw, 0.92rem)",
+                        color: "rgba(255,255,255,0.9)",
+                        fontWeight: 600,
+                        letterSpacing: "0.03em",
+                        marginBottom: "0.4rem",
+                      }}
+                    >
+                      Dos amigas  |  Una idea  |  Mucho crunch
+                    </p>
+                    <h2
+                      style={{
+                        fontSize: "clamp(3rem, 8.5vw, 5.4rem)",
+                        fontWeight: 800,
+                        letterSpacing: "-0.045em",
+                        lineHeight: 0.96,
+                        color: "#FFFFFF",
+                        textShadow: "0 4px 20px rgba(0,0,0,0.16)",
+                        margin: 0,
+                      }}
+                    >
+                      Historia
+                    </h2>
+                  </div>
+
+                  {/* Esquina inferior derecha limpia (sin texto "Toca para abrir") */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      alignItems: "flex-end",
+                      position: "relative",
+                      zIndex: 2,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                        color: "rgba(255,255,255,0.88)",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      2026
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </main>
+
+      {/* FIRMA INFERIOR IZQUIERDA */}
+      <footer
+        style={{
+          maxWidth: "75rem",
+          width: "100%",
+          margin: "0 auto",
+          padding: "1.5rem 2rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontSize: "0.74rem",
+          letterSpacing: "0.06em",
+          color: "rgba(17, 24, 39, 0.55)",
+          textTransform: "uppercase",
+          zIndex: 20,
+        }}
+      >
+        <div>
+          <strong style={{ color: "#5A32FA", fontWeight: 800 }}>PAPACRUJ</strong>
+          <span style={{ margin: "0 0.55rem", opacity: 0.4 }}>|</span>
+          <span>DISFRUTA LIGERO</span>
+        </div>
+      </footer>
+    </motion.div>
   );
 }
 
@@ -455,6 +1003,8 @@ const ProductCard = React.memo(function ProductCard({
 });
 
 export default function PromptMasterPage() {
+  const [activeView, setActiveView] = useState<"home" | "historia">("home");
+
   const heroStageRef = useRef<HTMLDivElement>(null);
   const heroMouseX = useMotionValue(0);
   const heroMouseY = useMotionValue(0);
@@ -471,6 +1021,7 @@ export default function PromptMasterPage() {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (activeView !== "home") return;
     const container = mountRef.current;
     if (!container) return;
 
@@ -697,7 +1248,7 @@ export default function PromptMasterPage() {
         container.removeChild(domElement);
       }
     };
-  }, []);
+  }, [activeView]);
 
   const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!heroStageRef.current) return;
@@ -709,6 +1260,20 @@ export default function PromptMasterPage() {
   const handleHeroMouseLeave = () => {
     heroMouseX.set(0);
     heroMouseY.set(0);
+  };
+
+  const handleReturnHome = (sectionId?: string) => {
+    setActiveView("home");
+    if (sectionId) {
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: sectionId === "envios" ? "center" : "start" });
+        }
+      }, 120);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const scrollToEnvios = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -728,7 +1293,7 @@ export default function PromptMasterPage() {
   return (
     <div style={{ backgroundColor: "#FFFFFF", color: "#111827", fontFamily: "'Inter', sans-serif", minHeight: "100vh", overflowX: "hidden" }}>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700;800;900&display=swap');
         html { scroll-behavior: smooth; }
         ::selection { background-color: #800020; color: #FFFFFF; }
         @keyframes marqueeScroll {
@@ -757,635 +1322,617 @@ export default function PromptMasterPage() {
         }
       `}</style>
 
-      {/* NAVBAR */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#FFFFFF", borderBottom: "1px solid rgba(17, 24, 39, 0.08)" }}>
-        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-          <a href="#" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
-          </a>
-
-          <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)", flexWrap: "wrap" }}>
-            <a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a>
-            <a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a>
-            <a href="#historia" style={{ textDecoration: "none", color: "inherit" }}>Historia</a>
-            <a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a>
-            <a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a>
-            <a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>Preguntas</a>
-          </nav>
-
-          <motion.a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.55rem 1.35rem", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
+      <AnimatePresence mode="wait">
+        {activeView === "historia" ? (
+          <HistoriaFolderView onGoHome={handleReturnHome} />
+        ) : (
+          <motion.div
+            key="home-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <WhatsAppIcon size={24} /> Hacer pedido →
-          </motion.a>
-        </div>
-      </header>
+            {/* NAVBAR */}
+            <header style={{ position: "sticky", top: 0, zIndex: 50, backgroundColor: "#FFFFFF", borderBottom: "1px solid rgba(17, 24, 39, 0.08)" }}>
+              <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                <a href="#" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+                  <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
+                </a>
 
-      {/* ESCAPARATE PRINCIPAL */}
-      <section
-        id="productos"
-        ref={heroStageRef}
-        onMouseMove={handleHeroMouseMove}
-        onMouseLeave={handleHeroMouseLeave}
-        style={{ padding: "2rem 1.5rem 4rem", maxWidth: "75rem", margin: "0 auto" }}
-      >
-        <div
-          style={{
-            backgroundColor: selectedProduct.bgColor,
-            boxShadow: `0 20px 40px ${selectedProduct.bgColor}40`,
-            transition: "background-color 0.3s ease",
-            backgroundImage: `radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 60%)`,
-            borderRadius: "32px",
-            padding: "clamp(2rem, 5vw, 4rem)",
-            position: "relative",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.25)"
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: "clamp(5rem, 15vw, 13rem)",
-              fontWeight: 900,
-              color: "rgba(255,255,255,0.14)",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              userSelect: "none",
-              letterSpacing: "-0.04em",
-              zIndex: 0
-            }}
-          >
-            {selectedProduct.shortName}
-          </div>
-
-          <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "0.5rem" }}>
-            <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>
-              Papacruj
-            </span>
-            <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.3)", padding: "0.35rem 0.75rem", borderRadius: "999px" }}>
-              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#FFF", opacity: 0.85 }}>Sabor seleccionado:</span>
-              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#FFF" }}>{selectedProduct.name}</span>
-            </div>
-          </div>
-
-          <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.85)", fontWeight: 700, marginBottom: "0.5rem" }}>
-                {selectedProduct.category}
-              </div>
-              <h3 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#FFFFFF", lineHeight: 1.08, marginBottom: "1rem" }}>
-                {selectedProduct.name}
-              </h3>
-              <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.9)", lineHeight: 1.6, marginBottom: "2rem" }}>
-                {selectedProduct.description}
-              </p>
-
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
-                {selectedProduct.details.map((det, idx) => (
-                  <span key={idx} style={{ backgroundColor: "rgba(0,0,0,0.28)", color: "#FFFFFF", padding: "0.4rem 1rem", borderRadius: "999px", fontSize: "0.8rem", fontWeight: 600 }}>
-                    ✓ {det}
-                  </span>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#FFFFFF" }}>Elige tu sabor:</span>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                  {PRODUCTS.map((prod) => (
-                    <motion.button
-                      key={prod.id}
-                      whileHover={{ scale: 1.18 }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                      onMouseEnter={() => setSelectedProduct(prod)}
-                      onClick={() => setSelectedProduct(prod)}
-                      title={prod.name}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        backgroundColor: prod.bgColor,
-                        border: selectedProduct.id === prod.id ? "3px solid #FFFFFF" : "2px solid rgba(255,255,255,0.45)",
-                        cursor: "pointer",
-                        boxShadow: selectedProduct.id === prod.id ? "0 0 12px rgba(255,255,255,0.9)" : "none",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <motion.div
-                style={{
-                  rotateX: heroRotateX,
-                  rotateY: heroRotateY,
-                  width: "100%",
-                  maxWidth: "360px",
-                  boxSizing: "border-box",
-                  background: "rgba(0, 0, 0, 0.38)",
-                  borderRadius: "28px",
-                  padding: "2rem",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  textAlign: "center",
-                  boxShadow: "0 16px 32px rgba(0,0,0,0.3)"
-                }}
-              >
-                <div
-                  onClick={() => setExpandedModalProduct(selectedProduct)}
-                  title="Haz clic para ver detalle ampliado"
-                  style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0.5rem 0 1rem 0", overflow: "hidden", borderRadius: "16px", cursor: "zoom-in", position: "relative" }}
-                >
-                  <img
-                    src={selectedProduct.imageSrc}
-                    alt={selectedProduct.name}
-                    style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", borderRadius: "12px" }}
-                  />
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "1.25rem" }}>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)" }}>
-                      {quantity === 1 ? "Precio por bolsa" : `Total (${quantity} bolsas)`}
-                    </div>
-                    <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#FFFFFF" }}>
-                      ${totalPrice}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.18)", padding: "0.4rem 0.8rem", borderRadius: "12px" }}>
-                    <motion.button whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.85 }} onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>−</motion.button>
-                    <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#FFF", minWidth: "1rem", textAlign: "center" }}>{quantity}</span>
-                    <motion.button whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.85 }} onClick={() => setQuantity(quantity + 1)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>+</motion.button>
-                  </div>
-                </div>
+                <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem", fontSize: "0.875rem", fontWeight: 500, color: "rgba(17, 24, 39, 0.7)", flexWrap: "wrap" }}>
+                  <a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a>
+                  <a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a>
+                  <button
+                    onClick={() => setActiveView("historia")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      font: "inherit",
+                      color: "inherit",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Historia
+                  </button>
+                  <a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a>
+                  <a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a>
+                  <a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>Preguntas</a>
+                </nav>
 
                 <motion.a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hero-wa-btn"
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.96 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.85rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+                  style={{ backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "9999px", padding: "0.55rem 1.35rem", fontSize: "0.9rem", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem", boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)", boxSizing: "border-box" }}
                 >
-                  <WhatsAppIcon size={32} />
-                  <span style={{ lineHeight: 1.2, textAlign: "left" }}>Hacer pedido por<br />WhatsApp →</span>
+                  <WhatsAppIcon size={24} /> Hacer pedido →
                 </motion.a>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </section>
+              </div>
+            </header>
 
-      {/* MARQUESINA INFINITA HORIZONTAL */}
-      <div style={{ overflow: "hidden", backgroundColor: "#111827", color: "#FFFFFF", padding: "1.1rem 0", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-        <div className="papacruj-marquee-track">
-          {[0, 1].map((loopIdx) => (
-            <div key={loopIdx} style={{ display: "flex", alignItems: "center", gap: "2.5rem", paddingRight: "2.5rem", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              <span>PAPACRUJ</span>
-              <span style={{ color: "#800020" }}>✦</span>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", textTransform: "none", fontSize: "1.35rem" }}>Disfruta ligero</span>
-              <span style={{ color: "#800020" }}>✦</span>
-              <span>CHIPS DE TARO ARTESANALES</span>
-              <span style={{ color: "#800020" }}>✦</span>
-              <span>LEÓN, GUANAJUATO</span>
-              <span style={{ color: "#800020" }}>✦</span>
-              <span>ENVÍOS A TODO MÉXICO</span>
-              <span style={{ color: "#800020" }}>✦</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CUADRÍCULA DE SABORES */}
-      <section id="catalogo" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "2.5rem" }}>
-          <div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.12em" }}>
-              Colección Completa
-            </span>
-            <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", marginTop: "0.25rem", lineHeight: 1.1 }}>
-              Explora los <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>4 sabores</span>
-            </h2>
-          </div>
-          <p style={{ fontSize: "0.9rem", color: "rgba(17,24,39,0.6)", maxWidth: "24rem" }}>
-            Toca cualquier bolsa para cambiar el color del sabor y ver su ficha completa.
-          </p>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
-          {PRODUCTS.map((prod) => (
-            <ProductCard
-              key={prod.id}
-              product={prod}
-              onSelectProduct={() => {
-                setSelectedProduct(prod);
-                setExpandedModalProduct(prod);
-              }}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* VISTA EXPANDIDA DE DETALLE DE PRODUCTO */}
-      <AnimatePresence>
-        {expandedModalProduct && (
-          <motion.div
-            key="detail-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setExpandedModalProduct(null)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 100,
-              backgroundColor: "rgba(17, 24, 39, 0.82)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1.5rem"
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.94, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: "100%",
-                maxWidth: "56rem",
-                backgroundColor: expandedModalProduct.bgColor,
-                borderRadius: "32px",
-                overflow: "hidden",
-                boxShadow: "0 25px 60px rgba(0,0,0,0.45)",
-                position: "relative"
-              }}
+            {/* ESCAPARATE PRINCIPAL */}
+            <section
+              id="productos"
+              ref={heroStageRef}
+              onMouseMove={handleHeroMouseMove}
+              onMouseLeave={handleHeroMouseLeave}
+              style={{ padding: "2rem 1.5rem 4rem", maxWidth: "75rem", margin: "0 auto" }}
             >
-              <motion.button
-                whileHover={{ scale: 1.15 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setExpandedModalProduct(null)}
+              <div
                 style={{
-                  position: "absolute",
-                  top: "1.25rem",
-                  right: "1.25rem",
-                  zIndex: 10,
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  border: "none",
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                  color: "#FFFFFF",
-                  fontSize: "1.2rem",
-                  fontWeight: 700,
-                  cursor: "pointer"
+                  backgroundColor: selectedProduct.bgColor,
+                  boxShadow: `0 20px 40px ${selectedProduct.bgColor}40`,
+                  transition: "background-color 0.3s ease",
+                  backgroundImage: `radial-gradient(circle at top right, rgba(255,255,255,0.22), transparent 60%)`,
+                  borderRadius: "32px",
+                  padding: "clamp(2rem, 5vw, 4rem)",
+                  position: "relative",
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.25)"
                 }}
               >
-                ✕
-              </motion.button>
-
-              <div style={{ padding: "3rem 2rem 2rem", position: "relative", textAlign: "center", overflow: "hidden" }}>
                 <div
                   style={{
                     position: "absolute",
                     top: "50%",
                     left: "50%",
                     transform: "translate(-50%, -50%)",
-                    fontSize: "clamp(4rem, 12vw, 8.5rem)",
+                    fontSize: "clamp(5rem, 15vw, 13rem)",
                     fontWeight: 900,
-                    color: "rgba(255,255,255,0.16)",
+                    color: "rgba(255,255,255,0.14)",
                     whiteSpace: "nowrap",
-                    pointerEvents: "none"
+                    pointerEvents: "none",
+                    userSelect: "none",
+                    letterSpacing: "-0.04em",
+                    zIndex: 0
                   }}
                 >
-                  {expandedModalProduct.shortName}
+                  {selectedProduct.shortName}
                 </div>
 
-                <img
-                  src={expandedModalProduct.imageSrc}
-                  alt={expandedModalProduct.name}
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    height: "240px",
-                    objectFit: "contain",
-                    borderRadius: "16px"
-                  }}
-                />
+                <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <span style={{ fontSize: "1.5rem", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>
+                    Papacruj
+                  </span>
+                  <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.3)", padding: "0.35rem 0.75rem", borderRadius: "999px" }}>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#FFF", opacity: 0.85 }}>Sabor seleccionado:</span>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#FFF" }}>{selectedProduct.name}</span>
+                  </div>
+                </div>
+
+                <div style={{ position: "relative", zIndex: 2, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.85)", fontWeight: 700, marginBottom: "0.5rem" }}>
+                      {selectedProduct.category}
+                    </div>
+                    <h3 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, color: "#FFFFFF", lineHeight: 1.08, marginBottom: "1rem" }}>
+                      {selectedProduct.name}
+                    </h3>
+                    <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.9)", lineHeight: 1.6, marginBottom: "2rem" }}>
+                      {selectedProduct.description}
+                    </p>
+
+                    <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
+                      {selectedProduct.details.map((det, idx) => (
+                        <span key={idx} style={{ backgroundColor: "rgba(0,0,0,0.28)", color: "#FFFFFF", padding: "0.4rem 1rem", borderRadius: "999px", fontSize: "0.8rem", fontWeight: 600 }}>
+                          ✓ {det}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#FFFFFF" }}>Elige tu sabor:</span>
+                      <div style={{ display: "flex", gap: "0.75rem" }}>
+                        {PRODUCTS.map((prod) => (
+                          <motion.button
+                            key={prod.id}
+                            whileHover={{ scale: 1.18 }}
+                            whileTap={{ scale: 0.9 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                            onMouseEnter={() => setSelectedProduct(prod)}
+                            onClick={() => setSelectedProduct(prod)}
+                            title={prod.name}
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              backgroundColor: prod.bgColor,
+                              border: selectedProduct.id === prod.id ? "3px solid #FFFFFF" : "2px solid rgba(255,255,255,0.45)",
+                              cursor: "pointer",
+                              boxShadow: selectedProduct.id === prod.id ? "0 0 12px rgba(255,255,255,0.9)" : "none",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                    <motion.div
+                      style={{
+                        rotateX: heroRotateX,
+                        rotateY: heroRotateY,
+                        width: "100%",
+                        maxWidth: "360px",
+                        boxSizing: "border-box",
+                        background: "rgba(0, 0, 0, 0.38)",
+                        borderRadius: "28px",
+                        padding: "2rem",
+                        border: "1px solid rgba(255,255,255,0.22)",
+                        textAlign: "center",
+                        boxShadow: "0 16px 32px rgba(0,0,0,0.3)"
+                      }}
+                    >
+                      <div
+                        onClick={() => setExpandedModalProduct(selectedProduct)}
+                        title="Haz clic para ver detalle ampliado"
+                        style={{ width: "100%", height: "260px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0.5rem 0 1rem 0", overflow: "hidden", borderRadius: "16px", cursor: "zoom-in", position: "relative" }}
+                      >
+                        <img
+                          src={selectedProduct.imageSrc}
+                          alt={selectedProduct.name}
+                          style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain", borderRadius: "12px" }}
+                        />
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "1.25rem" }}>
+                        <div style={{ textAlign: "left" }}>
+                          <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)" }}>
+                            {quantity === 1 ? "Precio por bolsa" : `Total (${quantity} bolsas)`}
+                          </div>
+                          <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "#FFFFFF" }}>
+                            ${totalPrice}
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255,255,255,0.18)", padding: "0.4rem 0.8rem", borderRadius: "12px" }}>
+                          <motion.button whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.85 }} onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>−</motion.button>
+                          <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#FFF", minWidth: "1rem", textAlign: "center" }}>{quantity}</span>
+                          <motion.button whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.85 }} onClick={() => setQuantity(quantity + 1)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer", fontWeight: 700, padding: "0 0.25rem" }}>+</motion.button>
+                        </div>
+                      </div>
+
+                      <motion.a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hero-wa-btn"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", boxSizing: "border-box", marginTop: "1.25rem", backgroundColor: "#25D366", color: "#FFFFFF", border: "none", borderRadius: "16px", padding: "0.85rem 1rem", fontWeight: 800, fontSize: "1rem", cursor: "pointer", textDecoration: "none", boxShadow: "0 8px 16px rgba(0,0,0,0.2)" }}
+                      >
+                        <WhatsAppIcon size={32} />
+                        <span style={{ lineHeight: 1.2, textAlign: "left" }}>Hacer pedido por<br />WhatsApp →</span>
+                      </motion.a>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* MARQUESINA INFINITA HORIZONTAL */}
+            <div style={{ overflow: "hidden", backgroundColor: "#111827", color: "#FFFFFF", padding: "1.1rem 0", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="papacruj-marquee-track">
+                {[0, 1].map((loopIdx) => (
+                  <div key={loopIdx} style={{ display: "flex", alignItems: "center", gap: "2.5rem", paddingRight: "2.5rem", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    <span>PAPACRUJ</span>
+                    <span style={{ color: "#800020" }}>✦</span>
+                    <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", textTransform: "none", fontSize: "1.35rem" }}>Disfruta ligero</span>
+                    <span style={{ color: "#800020" }}>✦</span>
+                    <span>CHIPS DE TARO ARTESANALES</span>
+                    <span style={{ color: "#800020" }}>✦</span>
+                    <span>LEÓN, GUANAJUATO</span>
+                    <span style={{ color: "#800020" }}>✦</span>
+                    <span>ENVÍOS A TODO MÉXICO</span>
+                    <span style={{ color: "#800020" }}>✦</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CUADRÍCULA DE SABORES */}
+            <section id="catalogo" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem", marginBottom: "2.5rem" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.12em" }}>
+                    Colección Completa
+                  </span>
+                  <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 800, color: "#111827", letterSpacing: "-0.03em", marginTop: "0.25rem", lineHeight: 1.1 }}>
+                    Explora los <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>4 sabores</span>
+                  </h2>
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "rgba(17,24,39,0.6)", maxWidth: "24rem" }}>
+                  Toca cualquier bolsa para cambiar el color del sabor y ver su ficha completa.
+                </p>
               </div>
 
-              <div
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  padding: "2rem 2.5rem",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "1.5rem"
-                }}
-              >
-                <div style={{ maxWidth: "32rem" }}>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 700, color: expandedModalProduct.bgColor, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                    {expandedModalProduct.category}
-                  </span>
-                  <h3 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#111827", marginTop: "0.25rem" }}>
-                    {expandedModalProduct.name} — {expandedModalProduct.price}
-                  </h3>
-                  <p style={{ fontSize: "0.95rem", color: "rgba(17,24,39,0.7)", lineHeight: 1.6, marginTop: "0.5rem" }}>
-                    {expandedModalProduct.description}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.5rem" }}>
+                {PRODUCTS.map((prod) => (
+                  <ProductCard
+                    key={prod.id}
+                    product={prod}
+                    onSelectProduct={() => {
+                      setSelectedProduct(prod);
+                      setExpandedModalProduct(prod);
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* VISTA EXPANDIDA DE DETALLE DE PRODUCTO */}
+            <AnimatePresence>
+              {expandedModalProduct && (
+                <motion.div
+                  key="detail-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setExpandedModalProduct(null)}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 100,
+                    backgroundColor: "rgba(17, 24, 39, 0.82)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "1.5rem"
+                  }}
+                >
+                  <motion.div
+                    initial={{ scale: 0.94, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      width: "100%",
+                      maxWidth: "56rem",
+                      backgroundColor: expandedModalProduct.bgColor,
+                      borderRadius: "32px",
+                      overflow: "hidden",
+                      boxShadow: "0 25px 60px rgba(0,0,0,0.45)",
+                      position: "relative"
+                    }}
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setExpandedModalProduct(null)}
+                      style={{
+                        position: "absolute",
+                        top: "1.25rem",
+                        right: "1.25rem",
+                        zIndex: 10,
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                        border: "none",
+                        backgroundColor: "rgba(0,0,0,0.4)",
+                        color: "#FFFFFF",
+                        fontSize: "1.2rem",
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                    >
+                      ✕
+                    </motion.button>
+
+                    <div style={{ padding: "3rem 2rem 2rem", position: "relative", textAlign: "center", overflow: "hidden" }}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          fontSize: "clamp(4rem, 12vw, 8.5rem)",
+                          fontWeight: 900,
+                          color: "rgba(255,255,255,0.16)",
+                          whiteSpace: "nowrap",
+                          pointerEvents: "none"
+                        }}
+                      >
+                        {expandedModalProduct.shortName}
+                      </div>
+
+                      <img
+                        src={expandedModalProduct.imageSrc}
+                        alt={expandedModalProduct.name}
+                        style={{
+                          position: "relative",
+                          zIndex: 2,
+                          height: "240px",
+                          objectFit: "contain",
+                          borderRadius: "16px"
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        padding: "2rem 2.5rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "1.5rem"
+                      }}
+                    >
+                      <div style={{ maxWidth: "32rem" }}>
+                        <span style={{ fontSize: "0.75rem", fontWeight: 700, color: expandedModalProduct.bgColor, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                          {expandedModalProduct.category}
+                        </span>
+                        <h3 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#111827", marginTop: "0.25rem" }}>
+                          {expandedModalProduct.name} — {expandedModalProduct.price}
+                        </h3>
+                        <p style={{ fontSize: "0.95rem", color: "rgba(17,24,39,0.7)", lineHeight: 1.6, marginTop: "0.5rem" }}>
+                          {expandedModalProduct.description}
+                        </p>
+                      </div>
+
+                      <motion.a
+                        href={`https://wa.me/524777269595?text=${encodeURIComponent(`¡Hola! Quiero pedir Papacruj sabor ${expandedModalProduct.name} (${expandedModalProduct.price} c/u).`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        style={{
+                          backgroundColor: "#25D366",
+                          color: "#FFFFFF",
+                          padding: "0.85rem 1.75rem",
+                          borderRadius: "9999px",
+                          fontWeight: 700,
+                          fontSize: "1rem",
+                          textDecoration: "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.65rem",
+                          boxShadow: "0 8px 20px rgba(37, 211, 102, 0.3)"
+                        }}
+                      >
+                        <WhatsAppIcon size={28} /> Pedir este sabor →
+                      </motion.a>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* EVENTOS Y MAYOREO SECTION */}
+            <section id="curriculum" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto" }}>
+              <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+                <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+                  Papacruj en tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>eventos</span>
+                </h2>
+                <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem", fontSize: "1rem" }}>
+                  Opciones para reuniones, fiestas y distribución comercial en León y todo México.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {CURRICULUM.map((item, idx) => {
+                  const isOpen = openCurriculum === idx;
+                  return (
+                    <div
+                      key={item.module}
+                      onClick={() => setOpenCurriculum(isOpen ? null : idx)}
+                      style={{
+                        backgroundColor: "#F9FAFB",
+                        border: "1px solid rgba(17, 24, 39, 0.08)",
+                        borderRadius: "20px",
+                        padding: "1.5rem 2rem",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+                          <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#800020", backgroundColor: "rgba(128, 0, 32, 0.1)", padding: "0.3rem 0.75rem", borderRadius: "8px" }}>
+                            {item.module}
+                          </span>
+                          <div>
+                            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827" }}>{item.title}</h3>
+                            <p style={{ fontSize: "0.8rem", color: "rgba(17, 24, 39, 0.5)", marginTop: "0.2rem" }}>{item.duration}</p>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
+                      </div>
+
+                      {isOpen && (
+                        <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
+                          {item.topics}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* REVIEWS SECTION */}
+            <section id="reviews" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
+              <div style={{ textAlign: "center", maxWidth: "45rem", margin: "0 auto 3rem" }}>
+                <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+                  Lo que dicen nuestros <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>clientes</span>
+                </h2>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
+                {REVIEWS.map((rev) => (
+                  <div
+                    key={rev.name}
+                    style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", borderRadius: "24px", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
+                  >
+                    <p style={{ fontSize: "0.95rem", color: "rgba(17, 24, 39, 0.8)", lineHeight: 1.6, fontStyle: "italic" }}>
+                      "{rev.quote}"
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "2rem" }}>
+                      <span style={{ fontSize: "2rem", backgroundColor: "#E5E7EB", width: "3rem", height: "3rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "9999px" }}>{rev.avatar}</span>
+                      <div>
+                        <h4 style={{ fontSize: "0.95rem", fontWeight: 600, color: "#111827" }}>{rev.name}</h4>
+                        <p style={{ fontSize: "0.75rem", color: "rgba(17, 24, 39, 0.5)" }}>{rev.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* FAQS SECTION */}
+            <section id="faq" style={{ padding: "5rem 1.5rem", maxWidth: "55rem", margin: "0 auto" }}>
+              <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+                <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+                  Preguntas <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>sobre envíos y pedidos</span>
+                </h2>
+                <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem" }}>Todo lo que necesitas saber sobre entregas en León, Gto. y envíos nacionales.</p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {FAQS.map((faq, idx) => {
+                  const isOpen = openAccordion === idx;
+                  return (
+                    <div
+                      key={faq.q}
+                      onClick={() => setOpenAccordion(isOpen ? null : idx)}
+                      style={{
+                        backgroundColor: "#F9FAFB",
+                        border: "1px solid rgba(17,24,39,0.06)",
+                        borderRadius: "20px",
+                        padding: "1.5rem 2rem",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827" }}>{faq.q}</h3>
+                        <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
+                      </div>
+                      {isOpen && (
+                        <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.7)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
+                          {faq.a}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* CALL TO ACTION & GLOBO 3D */}
+            <section id="envios" style={{ padding: "3rem 1.5rem 6rem", maxWidth: "75rem", margin: "0 auto" }}>
+              <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "40px", padding: "clamp(2.5rem, 5vw, 4rem)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "center", position: "relative", overflow: "hidden" }}>
+                <div>
+                  <h2 style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+                    Pide tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Papacruj</span> hoy
+                  </h2>
+                  <p style={{ color: "rgba(17, 24, 39, 0.65)", fontSize: "1rem", lineHeight: 1.6, marginTop: "1rem" }}>
+                    Envíos rápidos a domicilio en León, Guanajuato y envíos nacionales seguros a todo México. Disfruta de tus chips de taro favoritas crujientes y con el mejor sabor artesanal.
+                  </p>
+
+                  <div style={{ marginTop: "2rem" }}>
+                    <motion.a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.85rem 2rem", fontSize: "1.05rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
+                    >
+                      <WhatsAppIcon size={34} /> Hacer pedido por WhatsApp →
+                    </motion.a>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "2.5rem", fontSize: "0.85rem", color: "rgba(17, 24, 39, 0.75)" }}>
+                    <div>✓ Envíos seguros y rápidos en León, Gto. y nacionales a todo México</div>
+                    <div>✓ Atención personalizada por WhatsApp</div>
+                    <div>✓ Pagos fáciles y seguros</div>
+                  </div>
+                </div>
+
+                <div style={{ width: "100%", height: "320px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
+                  <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
+                </div>
+              </div>
+            </section>
+
+            {/* FOOTER */}
+            <footer style={{ backgroundColor: "#FFFFFF", borderTop: "1px solid rgba(17,24,39,0.08)", padding: "5rem 1.5rem 3rem" }}>
+              <div style={{ maxWidth: "75rem", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
+                <div>
+                  <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "44px", width: "auto", objectFit: "contain" }} />
+                  <p style={{ fontSize: "0.85rem", color: "rgba(17,24,39,0.6)", lineHeight: 1.6, marginTop: "1rem" }}>
+                    Chips de taro artesanales en León, Guanajuato y envíos a todo México. Para ese antojo, ese plan y ese «una más».
                   </p>
                 </div>
 
-                <motion.a
-                  href={`https://wa.me/524777269595?text=${encodeURIComponent(`¡Hola! Quiero pedir Papacruj sabor ${expandedModalProduct.name} (${expandedModalProduct.price} c/u).`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  style={{
-                    backgroundColor: "#25D366",
-                    color: "#FFFFFF",
-                    padding: "0.85rem 1.75rem",
-                    borderRadius: "9999px",
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.65rem",
-                    boxShadow: "0 8px 20px rgba(37, 211, 102, 0.3)"
-                  }}
-                >
-                  <WhatsAppIcon size={28} /> Pedir este sabor →
-                </motion.a>
+                <div>
+                  <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>Explorar</h4>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "rgba(17,24,39,0.6)" }}>
+                    <li><a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a></li>
+                    <li><a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a></li>
+                    <li>
+                      <button
+                        onClick={() => setActiveView("historia")}
+                        style={{ background: "none", border: "none", padding: 0, font: "inherit", color: "inherit", cursor: "pointer" }}
+                      >
+                        Historia
+                      </button>
+                    </li>
+                    <li><a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a></li>
+                    <li><a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a></li>
+                    <li><a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>FAQ</a></li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>Redes Sociales</h4>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "rgba(17,24,39,0.6)" }}>
+                    <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>Instagram →</a></li>
+                    <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>TikTok →</a></li>
+                    <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>Facebook →</a></li>
+                  </ul>
+                </div>
               </div>
-            </motion.div>
+
+              <div style={{ maxWidth: "75rem", margin: "0 auto", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", color: "rgba(17,24,39,0.45)", flexWrap: "wrap", gap: "1rem" }}>
+                <p>© 2026 Papacruj. Todos los derechos reservados.</p>
+                <div style={{ display: "flex", gap: "1.5rem" }}>
+                  <a href="#" style={{ textDecoration: "none", color: "inherit" }}>Política de Privacidad</a>
+                  <a href="#" style={{ textDecoration: "none", color: "inherit" }}>Términos de Servicio</a>
+                </div>
+              </div>
+            </footer>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* EVENTOS Y MAYOREO SECTION */}
-      <section id="curriculum" style={{ padding: "5rem 1.5rem", maxWidth: "60rem", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-            Papacruj en tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>eventos</span>
-          </h2>
-          <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem", fontSize: "1rem" }}>
-            Opciones para reuniones, fiestas y distribución comercial en León y todo México.
-          </p>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {CURRICULUM.map((item, idx) => {
-            const isOpen = openCurriculum === idx;
-            return (
-              <div
-                key={item.module}
-                onClick={() => setOpenCurriculum(isOpen ? null : idx)}
-                style={{
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid rgba(17, 24, 39, 0.08)",
-                  borderRadius: "20px",
-                  padding: "1.5rem 2rem",
-                  cursor: "pointer"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#800020", backgroundColor: "rgba(128, 0, 32, 0.1)", padding: "0.3rem 0.75rem", borderRadius: "8px" }}>
-                      {item.module}
-                    </span>
-                    <div>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827" }}>{item.title}</h3>
-                      <p style={{ fontSize: "0.8rem", color: "rgba(17, 24, 39, 0.5)", marginTop: "0.2rem" }}>{item.duration}</p>
-                    </div>
-                  </div>
-                  <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
-                </div>
-
-                {isOpen && (
-                  <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
-                    {item.topics}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* REVIEWS SECTION */}
-      <section id="reviews" style={{ padding: "5rem 1.5rem", maxWidth: "75rem", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", maxWidth: "45rem", margin: "0 auto 3rem" }}>
-          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-            Lo que dicen nuestros <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>clientes</span>
-          </h2>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
-          {REVIEWS.map((rev) => (
-            <div
-              key={rev.name}
-              style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.06)", borderRadius: "24px", padding: "2rem", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
-            >
-              <p style={{ fontSize: "0.95rem", color: "rgba(17, 24, 39, 0.8)", lineHeight: 1.6, fontStyle: "italic" }}>
-                "{rev.quote}"
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "2rem" }}>
-                <span style={{ fontSize: "2rem", backgroundColor: "#E5E7EB", width: "3rem", height: "3rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "9999px" }}>{rev.avatar}</span>
-                <div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 600, color: "#111827" }}>{rev.name}</h4>
-                  <p style={{ fontSize: "0.75rem", color: "rgba(17, 24, 39, 0.5)" }}>{rev.role}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FAQS SECTION */}
-      <section id="faq" style={{ padding: "5rem 1.5rem", maxWidth: "55rem", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-            Preguntas <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>sobre envíos y pedidos</span>
-          </h2>
-          <p style={{ color: "rgba(17, 24, 39, 0.6)", marginTop: "0.5rem" }}>Todo lo que necesitas saber sobre entregas en León, Gto. y envíos nacionales.</p>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {FAQS.map((faq, idx) => {
-            const isOpen = openAccordion === idx;
-            return (
-              <div
-                key={faq.q}
-                onClick={() => setOpenAccordion(isOpen ? null : idx)}
-                style={{
-                  backgroundColor: "#F9FAFB",
-                  border: "1px solid rgba(17,24,39,0.06)",
-                  borderRadius: "20px",
-                  padding: "1.5rem 2rem",
-                  cursor: "pointer"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#111827" }}>{faq.q}</h3>
-                  <span style={{ fontSize: "1.25rem", color: "#800020", fontWeight: 700 }}>{isOpen ? "−" : "+"}</span>
-                </div>
-                {isOpen && (
-                  <p style={{ fontSize: "0.9rem", color: "rgba(17, 24, 39, 0.7)", lineHeight: 1.6, marginTop: "1rem", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "1rem" }}>
-                    {faq.a}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* CALL TO ACTION & GLOBO 3D */}
-      <section id="envios" style={{ padding: "3rem 1.5rem 6rem", maxWidth: "75rem", margin: "0 auto" }}>
-        <div style={{ backgroundColor: "#F9FAFB", border: "1px solid rgba(17,24,39,0.08)", borderRadius: "40px", padding: "clamp(2.5rem, 5vw, 4rem)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "3rem", alignItems: "center", position: "relative", overflow: "hidden" }}>
-          <div>
-            <h2 style={{ fontSize: "clamp(2.5rem, 4vw, 3.5rem)", fontWeight: 700, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-              Pide tus <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020" }}>Papacruj</span> hoy
-            </h2>
-            <p style={{ color: "rgba(17, 24, 39, 0.65)", fontSize: "1rem", lineHeight: 1.6, marginTop: "1rem" }}>
-              Envíos rápidos a domicilio en León, Guanajuato y envíos nacionales seguros a todo México. Disfruta de tus chips de taro favoritas crujientes y con el mejor sabor artesanal.
-            </p>
-
-            <div style={{ marginTop: "2rem" }}>
-              <motion.a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#25D366", color: "#FFFFFF", borderRadius: "9999px", padding: "0.85rem 2rem", fontSize: "1.05rem", fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 16px rgba(37, 211, 102, 0.35)", boxSizing: "border-box" }}
-              >
-                <WhatsAppIcon size={34} /> Hacer pedido por WhatsApp →
-              </motion.a>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "2.5rem", fontSize: "0.85rem", color: "rgba(17, 24, 39, 0.75)" }}>
-              <div>✓ Envíos seguros y rápidos en León, Gto. y nacionales a todo México</div>
-              <div>✓ Atención personalizada por WhatsApp</div>
-              <div>✓ Pagos fáciles y seguros</div>
-            </div>
-          </div>
-
-          <div style={{ width: "100%", height: "320px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", overflow: "hidden", cursor: "grab" }}>
-            <div ref={mountRef} style={{ width: "100%", height: "100%", position: "absolute", inset: 0 }} />
-          </div>
-        </div>
-      </section>
-
-      {/* SECCIÓN SOBRE NOSOTROS / HISTORIA */}
-      <section
-        id="historia"
-        style={{ padding: "4rem 1.5rem 7rem", maxWidth: "60rem", margin: "0 auto", textAlign: "left" }}
-      >
-        <div
-          style={{
-            backgroundColor: "#FFFFFF",
-            color: "#111827",
-            border: "1px solid rgba(128, 0, 32, 0.15)",
-            borderRadius: "36px",
-            padding: "clamp(2.5rem, 5vw, 4.5rem)",
-            boxShadow: "0 25px 60px rgba(128, 0, 32, 0.08)",
-            backgroundImage: "radial-gradient(circle at top right, rgba(128, 0, 32, 0.05), transparent 70%)",
-            position: "relative",
-            overflow: "hidden"
-          }}
-        >
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(128, 0, 32, 0.08)", border: "1px solid rgba(128, 0, 32, 0.2)", borderRadius: "9999px", padding: "0.35rem 1rem", marginBottom: "1.5rem", fontSize: "0.8rem", fontWeight: 700, color: "#800020", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-            <span style={{ backgroundColor: "#800020", width: "8px", height: "8px", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 10px rgba(128,0,32,0.4)" }} />
-            Sobre Nosotros
-          </div>
-          
-          <h2 style={{ fontSize: "clamp(2.5rem, 5.5vw, 3.8rem)", fontWeight: 900, color: "#111827", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "2.5rem" }}>
-            Dos amigas. <br />
-            Una idea. <br />
-            <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", textShadow: "0 0 25px rgba(128,0,32,0.15)" }}>Mucho crunch.</span>
-          </h2>
-
-          <div style={{ fontSize: "clamp(1.15rem, 2.2vw, 1.4rem)", fontFamily: "'Playfair Display', serif", color: "#800020", lineHeight: 1.5, marginBottom: "2rem", fontWeight: 600 }}>
-            PAPACRUJ nació entre dos amigas que queríamos crear una opción diferente para disfrutar el antojo.
-          </div>
-
-          <div style={{ fontSize: "1.05rem", color: "rgba(17, 24, 39, 0.75)", lineHeight: 1.7, display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            <p>
-              Somos una marca joven, auténtica y con mucha personalidad. Queremos acompañarte a la escuela, a una tarde con amigos, a tus viajes, a tus películas y a esos momentos en los que simplemente se te antoja algo rico.
-            </p>
-            <p>
-              Nuestros chips de taro tienen 0 mg de grasas trans, 0 mg de colesterol, son altos en fibra, bajos en sodio y no contienen conservadores artificiales. Y hay algo que tenemos muy claro: disfrutar una opción más ligera también debe saber delicioso.
-            </p>
-            <p>
-              Cuidamos nuestros sabores y cada detalle de la marca para que pruebes PAPACRUJ por curiosidad y vuelvas por su sabor.
-            </p>
-          </div>
-
-          <div style={{ marginTop: "2.5rem", fontSize: "clamp(1.3rem, 2.5vw, 1.6rem)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#800020", fontWeight: 700, borderTop: "1px solid rgba(128, 0, 32, 0.15)", paddingTop: "2rem" }}>
-            Porque disfrutar y cuidarte pueden ir juntos.
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ backgroundColor: "#FFFFFF", borderTop: "1px solid rgba(17,24,39,0.08)", padding: "5rem 1.5rem 3rem" }}>
-        <div style={{ maxWidth: "75rem", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
-          <div>
-            <img src="/logopapa.png" alt="Papacruj Disfruta Ligero" style={{ height: "44px", width: "auto", objectFit: "contain" }} />
-            <p style={{ fontSize: "0.85rem", color: "rgba(17,24,39,0.6)", lineHeight: 1.6, marginTop: "1rem" }}>
-              Chips de taro artesanales en León, Guanajuato y envíos a todo México. Para ese antojo, ese plan y ese «una más».
-            </p>
-          </div>
-
-          <div>
-            <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>Explorar</h4>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "rgba(17,24,39,0.6)" }}>
-              <li><a href="#envios" onClick={scrollToEnvios} style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>Envíos</a></li>
-              <li><a href="#catalogo" style={{ textDecoration: "none", color: "inherit" }}>Sabores</a></li>
-              <li><a href="#historia" style={{ textDecoration: "none", color: "inherit" }}>Historia</a></li>
-              <li><a href="#curriculum" style={{ textDecoration: "none", color: "inherit" }}>Eventos</a></li>
-              <li><a href="#reviews" style={{ textDecoration: "none", color: "inherit" }}>Reseñas</a></li>
-              <li><a href="#faq" style={{ textDecoration: "none", color: "inherit" }}>FAQ</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#111827", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>Redes Sociales</h4>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "rgba(17,24,39,0.6)" }}>
-              <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>Instagram →</a></li>
-              <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>TikTok →</a></li>
-              <li><a href="#" style={{ textDecoration: "none", color: "inherit" }}>Facebook →</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: "75rem", margin: "0 auto", borderTop: "1px solid rgba(17,24,39,0.06)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", color: "rgba(17,24,39,0.45)", flexWrap: "wrap", gap: "1rem" }}>
-          <p>© 2026 Papacruj. Todos los derechos reservados.</p>
-          <div style={{ display: "flex", gap: "1.5rem" }}>
-            <a href="#" style={{ textDecoration: "none", color: "inherit" }}>Política de Privacidad</a>
-            <a href="#" style={{ textDecoration: "none", color: "inherit" }}>Términos de Servicio</a>
-          </div>
-        </div>
-      </footer>
 
       <ChatWidget />
     </div>
